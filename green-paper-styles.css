@@ -1,0 +1,630 @@
+body {
+				font-family: 'Roboto Slab', serif;
+				background-color: rgba(63, 191, 65, 0.05);
+				padding-top:10px;
+			}
+
+
+div.wrapper {
+	padding-left:35px;
+	padding-right:35px;
+	max-width: 850px;
+	margin:0 auto;
+}
+
+
+p {
+	line-height: 150%;
+	font-size: 16px;
+}
+
+
+ul > li {
+	/* line-height: 150%;
+	font-size: 16px; */
+	line-height: 150%;
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
+	margin-right: 10%;
+}
+
+sup, sub {
+    height: 0;
+    line-height: 150%;
+    vertical-align: baseline;
+    position: relative;
+	}
+
+sup { bottom: 1ex; }
+sub { top: .5ex; }
+
+
+.phase-slides {
+	-webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+}
+
+
+
+ol#references {
+    counter-reset: item;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+ol#references > li {
+    display: block;
+    margin-bottom: .5em;
+    margin-left: 2em;
+}
+
+ol#references > li:before {
+    display: inline-block;
+    content: "[" counter(item) "] ";
+    counter-increment: item;
+    width: 2em;
+    margin-left: -2em;
+}
+
+
+
+
+
+
+
+.react-tangle-input {
+	display: inline;
+}
+.container {
+	display: flex;
+	border: 1px solid green;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.chartChild {
+}
+.card {
+	width: 800px;
+}
+h3.subtitle {
+	display: inline;
+}
+.thumb {
+	cursor: -webkit-zoom-in;
+	cursor: -moz-zoom-in;
+	cursor: -ms-zoom-in;
+	cursor: zoom-in;
+	max-width: 350px;
+}
+
+/*
+.axis.log text {
+	font-family: sans-serif;
+	font-size: 8px;
+}
+*/
+g.axis.log g.tick text {
+	font-family: sans-serif;
+	font-size: 10px;
+}
+
+/*
+g.barx.axis.log g.tick line {
+	stroke: red;
+}
+*/
+
+
+/*
+** this messes up the line chart y axis
+** but it helps the group-stacked y axis
+g.y.axis {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+*/
+
+
+/* ** this messes up the line chart x axis
+   ** but it helps the group-stacked chart x axis
+g.x.axis {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+*/
+
+
+/*
+	** this messes up the line chart y axis text
+	** but it helps the group-stacked y axis text
+g.y.axis text {
+	font-size: 10px;
+	font-family: sans-serif;
+}
+*/
+
+
+g.rd3-linechart-yaxis > text.axis-label {
+	font-size: 10px;
+}
+
+
+
+
+/**  * neutral/complete bundle barchart guideline * **/
+path.guideline {
+	stroke: steelblue;
+	stroke-width: 2;
+	fill: none;
+}
+
+
+
+path.legendline {
+	stroke: steelblue;
+	stroke-width: 2;
+	fill: none;
+}
+
+
+/* tooltip related tags */
+
+g.bars rect:hover {
+  fill: #33ADBC;
+}
+
+
+.tooltip-container {
+	position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  width: 150px;
+  height: auto;
+  padding: 10px;
+  background-color: #000;
+  pointer-events: none;
+}
+
+
+.tooltip-left:before {
+  content: "";
+  position:absolute;
+  bottom: 11px;
+  right: -8px;
+  border-left: 8px solid #000;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 0;
+}
+
+.tooltip-right:before {
+  content: "";
+  position:absolute;
+  bottom: 11px;
+  left: -8px;
+  border-right: 8px solid #000;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 0;
+}
+
+
+.tooltip.hidden {
+  display: none;
+}
+
+.tooltip p {
+  margin: 0;
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+
+
+
+/**  tooltip styles. react-components/iinfo-tip.info  **/
+.img-container {
+	  position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+}
+
+.dummy {
+    padding-top: 100%; /* forces 1:1 aspect ratio */
+}
+
+
+
+
+
+/* ** option checkbox styling for Xmark ** */
+
+label input.option-group {
+  display: none;/* <-- hide the default checkbox */
+}
+
+label.option-group {
+	display: inline-block;
+}
+
+
+input[type=checkbox] + div.option-checkbox {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+  background-color: white;
+  margin-right: 5px;
+  margin-top: 0px;
+  margin-left: 0px;
+  cursor: pointer;
+}
+
+
+input[type=checkbox] + div.option-checkbox.buy-call {
+	border: 3px solid #999933;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.buy-call {
+	background-color: #999933;
+}
+
+input[type=checkbox] + div.option-checkbox.write-call {
+	border: 3px solid #DDCC77;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.write-call {
+	background-color: #DDCC77;
+}
+
+
+
+input[type=checkbox] + div.option-checkbox.buy-put {
+	border: 3px solid #CC6677;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.buy-put {
+	background-color: #CC6677;
+}
+
+input[type=checkbox] + div.option-checkbox.write-put {
+	border: 3px solid #88CCEE;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.write-put {
+	background-color: #88CCEE;
+}
+
+
+
+input[type=checkbox] + div.option-checkbox.straddle {
+	border: 3px solid #332288;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.straddle {
+	background-color: #332288;
+}
+
+input[type=checkbox] + div.option-checkbox.butterfly {
+	border: 3px solid #44AA99;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.butterfly {
+	background-color: #44AA99;
+}
+
+
+
+input[type=checkbox] + div.option-checkbox.short {
+	border: 3px solid #882255;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.short {
+	background-color: #882255;
+}
+
+input[type=checkbox] + div.option-checkbox.long {
+	border: 3px solid #117733;
+	background-color: white;
+}
+input[type=checkbox]:checked + div.option-checkbox.long {
+	background-color: #117733;
+}
+
+
+
+
+
+
+
+#riskToWin {
+	font-size: 0.7em;
+	text-align: left;
+	/* border-bottom:0px; */
+	border: 0px dotted gray;
+	padding:0;
+	line-height: 1em;
+	height: 2.2em;
+	overflow:hidden;
+	margin-left:35px;
+}
+#riskToWin.buy {
+	margin-top:0;
+	border-right:0px;
+}
+
+#riskToWin.write {
+	border-left:0px;
+	margin:0;
+}
+
+
+
+
+
+
+.flex {
+	display: flex;
+	display: -webkit-flex;
+}
+
+.flex-row-space {
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
+	justify-content: space-between;
+	-webkit-justify-content: space-between;
+}
+
+
+.flex-row-start {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+}
+
+.flex-column-start {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+}
+
+.flex-row-start-center {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: center;
+	align-items: center;
+}
+
+
+.flex-row-center-center {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: center;
+	justify-content: center;
+	-webkit-align-items: center;
+	align-items: center;
+}
+
+
+.flex-row-spacearound {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: space-around;
+	justify-content: space-around;
+}
+
+.flex-row-spacebetween {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: space-between;
+	justify-content: space-between;
+	border: 0px dotted green;
+}
+
+
+.flex-column-start-center {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: center;
+	align-items: center;
+}
+
+.flex-column-start-start {
+	display: flex;
+	display: -webkit-flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: flex-start;
+	align-items: flex-start;
+}
+
+.flex-column-center-center {
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: column;
+	-webkit-flex-direction: column;
+	justify-content: center;
+	-webkit-justify-content: center;
+	align-items: center;
+	-webkit-align-items: center;
+}
+
+
+
+/*  ** option checkbox flexbox table  ** */
+
+div.optionFlexTable {
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+}
+
+div.optionHeader {
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
+	/* background-color: Bisque; */
+	border-bottom: 1px solid black;
+}
+
+div.optionHeader div {
+	flex: 1 1 auto;
+	text-align: center;
+}
+
+div.optionColTable {
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
+	justify-content: space-between;
+	-webkit-justify-content: space-between;
+}
+
+div.optionColumn {
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  /* Hide superfluous border */
+  /* margin: 0 -4px -4px 0; */
+  padding: 0;
+}
+
+
+div.optionColumn > div {
+  flex: 0 1 auto;
+  min-height: 50px;
+  width: 160px;
+  /* background-color: Bisque; */
+  display: flex;
+  display: -webkit-flex;
+  padding-top: 10px;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  justify-content: center;
+  -webkit-justify-content: center;
+  text-align: center;
+}
+
+div.optionColumn.left > div {
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+div.optionColumn.center > div {
+  width:50px;
+}
+
+div.optionColumn.right > div {
+  border-left: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+
+
+
+
+
+ol.toc {
+	counter-reset: item;
+	padding-left: 2em;
+	line-height: 1.8em;
+}
+ol.toc li {
+	display: block;
+}
+ol.toc li:before {
+	content: counters(item, ".") " ";
+	counter-increment: item;
+}
+
+
+
+/*
+blockquote {
+	background: #f9f9f9;
+	border-left: 10px solid #ccc;
+	margin: 1.5em 10px;
+	padding: 0.5em 10px;
+	quotes: "\201C""\201D""\2018""\2019";
+}
+blockquote:before {
+	color: #ccc;
+	content: open-quote;
+	font-size: 4em;
+	line-height: 0.1em;
+	margin-right: 0.25em;
+	vertical-align: -0.4em;
+}
+blockquote p {
+	display: inline;
+}
+*/
+
+
+blockquote.style2 {
+	/* font: 14px/22px normal helvetica, sans-serif; */
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-left: 50px;
+	padding-left: 15px;
+	border-left: 3px solid #ccc;
+}
+
+blockquote.style2 cite {
+	font-style: normal;
+	display: block;
+	text-align: left; /* right*/
+	font-style: italic;
+}
+
+blockquote.style2 cite:before {
+	content: "\2014 \2009";
+}
+
+
+
+
+blockquote.ref {
+	margin:5px 0 0 5px;
+	padding:0 0 0 5px;
+	border-left: 3px solid #ccc;
+}

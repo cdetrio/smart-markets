@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Smart Markets for Stablecoins: Providing Liquidity on Blockchains with Decentralized Autonomous Market Makers for Combinatorial Portfolios</title>
+
+
+
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+		<script type="text/javascript" src="https://stevenbenner.github.io/jquery-powertip/scripts/jquery.powertip.js"></script>
+
+
+		<link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
+
+		<link rel="stylesheet" type="text/css" href="quantum-shadows.css">
+		<link rel="stylesheet" type="text/css" href="react-tangle.css">
+		<link rel="stylesheet" type="text/css" href="green-paper-styles.css">
+
+		<link rel="stylesheet" type="text/css" href="https://stevenbenner.github.io/jquery-powertip/styles/jquery.powertip.css">
+
+
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
+		<link rel="stylesheet" type="text/css" href="imagezoom.css">
+
+
+
+
+
+
+<style>
+
+
+a {
+	color: Blue;
+	/* color: RoyalBlue; */
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+
+/* chart title position */
+div.container div h4 {
+	position:relative;
+	left: 100px;
+}
+
+div.depthChartContainer div h4 {
+	margin-left: 50px;
+}
+
+
+/* chart legend position */
+div.container div ul {
+	position:relative;
+	left: -300px;
+}
+
+
+div.depthModule {
+	display:flex;
+	flex-direction:row;
+	justify-content:space-between;
+	border: 1px dotted green;
+}
+
+
+
+
+div.depthChartContainer .axis-label {
+	font-size: 11px;
+}
+
+
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+.rd3-linechart-xaxis text {
+    font-family: sans-serif;
+    font-size: 10px;
+}
+
+
+
+td.mouse-hl {
+	border: 1px solid blue;
+}
+
+
+
+
+
+#powerTip {
+	width: 350px;
+	white-space: normal;
+	background: #F7F7F7;
+	color: black;
+  font-size: 8pt;
+  border: 2px solid #092D6D;
+}
+
+
+#references li {
+	margin-top: 10pt;
+}
+
+
+.phase-slides {
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
+	justify-content: space-between;
+	-webkit-justify-content: space-between;
+	align-items:start;
+	-webkit-align-items:start;
+}
+
+
+a.ref {
+	color: DarkGreen;
+}
+
+a.note {
+	color: Blue;
+}
+
+
+
+a.hilite {
+	color: #000;
+	text-decoration: none;
+	/* box-shadow: inset 0 -2px 0 #67bde4; */
+	box-shadow: inset 0 -2px 0 #47B041;
+}
+
+a.dotted {
+	color: #000;
+	text-decoration: none;
+	/* border-bottom: #238A1D 1px dotted; */
+	border-bottom: rgba(35, 138, 29, 0.5) 1px dotted;
+
+
+}
+
+
+a.dotted:hover {
+	color: #238A1D;
+}
+
+
+a.ul {
+	color: #000;
+	text-decoration: none;
+	border-bottom: RoyalBlue 1px solid;
+}
+
+
+a.ul:hover {
+	color: RoyalBlue;
+}
+
+
+.phase-slides img {
+	box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.5);
+}
+
+
+
+#references a {
+	color: #000;
+	text-decoration: none;
+	box-shadow: inset 0 -2px 0 #47B041;
+}
+
+
+#powerTip > a {
+	color: #000;
+	text-decoration: none;
+	box-shadow: inset 0 -2px 0 #47B041;
+}
+
+
+
+</style>
+
+
+
+<script>
+
+
+	var NOTES = {
+		'GreenPaper': 'A <a href="http://en.wikipedia.org/wiki/Green_paper">green paper</a> "is meant to invite interested individuals or organizations to contribute views and information. It may be followed by a white paper".',
+
+		'AboutTerms': 'This document uses only three new terms: “batch combinatorial auction”, “combinatorial order book”, and “decentralized autonomous market maker”. Although these particular phrasings seem to be new (as of June 2015, google searches for each return zero relevant results), the mechanisms are not novel.',
+
+		'SmartMarket': 'As noted on the wikipedia pages for <a href="https://en.wikipedia.org/wiki/Smart_market">smart market</a> and <a href="http://en.wikipedia.org/wiki/Combinatorial_auction">combinatorial auction</a>, the combinatorial auction was first proposed in 1982 by Rassenti et. al., who decribed it as a "smart computer-assisted market". We use "smart market" in the same sense, i.e. to describe a combinatorial market mechanism that solves a complex optimization problem, <b>NOT</b> to describe a market mechanism implemented in a smart contract.',
+
+		'SmartAMM': 'Our use of “smart market” to describe an automated market maker (AMM) is admittedly unfamiliar. But since the AMMs we discuss (LMSR and its cost function generalizations) accept combinatorial bids, and have been shown to be equivalent to online linear optimization, such AMMs are appropriately described as smart market mechanisms.',
+
+		'EconCourse': 'For an economics course that teaches real-world mechanics of liquidity instead of abstract models of equilibrium, see Perry Merhling’s course <a href="https://www.coursera.org/course/money">Economics of Money and Banking</a>.'
+	}
+
+
+	var REFS = {
+
+		'Friedman-1993': 'David Friedman. (1993). The Double Auction Market Institution: A Survey. <blockquote class="ref">"Trade in actual markets (in the field or in the laboratory) is governed by a market <i>institution</i>, that is, a set of rules specifying which sorts of bids and other messages are legitimate, and how and when traders transact, given their messages."</blockquote>',
+
+		'Pennock-2012': 'David Pennock et. al. (2012). Talk title: A tractable combinatorial market maker using constraint generation. <a href="http://dpennock.com/talks/combopm-constraints-northwestern-4-2012.pdf">slides</a> and <a href="https://www.youtube.com/watch?v=d-zxxvHpWTg">video</a>.',
+
+		'Wah-2013': 'Elaine Wah and Michael P. Wellman. (2013). Latency arbitrage, market fragmentation, and efficiency: A two-market model. Proceedings of the fourteenth ACM conference on Electronic commerce. <a href="http://web.eecs.umich.edu/srg/wp-content/uploads/2013/02/ec38-wah.pdf">paper</a>.',
+
+		'Budish-2015': 'Eric Budish, Peter Cramton, and John Shim. (2015). The High-Frequency Trading Arms Race: Frequent Batch Auctions as a Market Design Response. <a href="http://faculty.chicagobooth.edu/eric.budish/research/HFT-FrequentBatchAuctions.pdf">paper</a> and <a href="http://faculty.chicagobooth.edu/eric.budish/research/HFT-FrequentBatchAuctions-Slides.pdf">slides</a>.',
+
+		'Budish-2014': 'Eric Budish, Peter Cramton, and John Shim. (2014). Implementation details for frequent batch auctions: Slowing down markets to the blink of an eye. The American Economic Review 104, no. 5: 418-424. <a href="http://faculty.chicagobooth.edu/eric.budish/research/HFT-FrequentBatchAuctions-ImplementationDetails.pdf">paper</a>.',
+
+		'Wah-2015': 'Elaine Wah, Dylan Hurd, and Michael Wellman. (2015). Strategic Market Choice: Frequent Call Markets vs. Continuous Double Auctions for Fast and Slow Traders. <a href="http://web.eecs.umich.edu/~ewah/docs/amma_ewah.pdf">paper</a>.',
+
+		'McCabe-1991': 'Kevin A. McCabe, Stephen J. Rassenti, Vernon L. Smith. (1991). Smart Computer-Assisted Markets. Science, Volume 254, Issue 5031, 534-538. <a href="http://teaching.ust.hk/~bee/papers/Chew/91McCabe-Smith-SCIENCE-SmartCompAssitMark.PDF">paper</a>.',
+
+		'Sams-2014': 'Robert Sams. (2014). A note on cryptocurrency stabilisation: Seignorage Shares. <a href="https://github.com/rmsams/stablecoins/blob/master/paper.pdf">paper</a> and <a href="https://github.com/rmsams/slides-stablecoin/blob/master/slides.pdf">slides</a>.',
+
+		'Ametrano-2015': 'Ferdinando M. Ametrano. (2015). Cryptocurrency Price Stability Using Seigniorage Shares, Decentralized Autonomous Reserve Bank, Bitcoin as Reserve Asset, and Proof-of-Payment. <a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2508296">paper</a>, <a href="https://speakerdeck.com/nando1970/the-future-of-money-hayek-money-seigniorage-shares-reserve-bank-and-proof-of-payment">slides</a>, and <a href="https://www.youtube.com/watch?v=ndT59662sog&t=766">video</a>.',
+
+
+		'Sharpe-1999': 'William F. Sharpe. (1999). Time-state Claims. <a href="http://web.stanford.edu/~wfsharpe/mia/prc/mia_prc1.htm">section</a> and <a href="http://web.stanford.edu/~wfsharpe/mia/prc/mia_prc0.htm">chapter</a>.',
+
+		'Rassenti-1982': 'Stephen J. Rassenti, Vernon L. Smith, and Robert L. Bulfin. (1982). A Combinatorial Auction Mechanism for Airport Time Slot Allocation. Bell Journal of Economics 13 (2): 402–417. <a href="http://www.eecs.harvard.edu/~parkes/cs286r/spring02/papers/rassenti82.pdf">paper</a>.',
+
+		'Ferguson-1988': 'Robert A. Ferguson and John W. O\'Brien. (1988). Stabilizing forwards: For a more stable market. The Journal of Portfolio Management 14, no. 4: 4. <a href="http://dx.doi.org/10.3905/jpm.1988.409168">article</a>.',
+
+		'Schwartz-1988': 'Robert A. Schwartz. (1988). A proposal to stabilize stock prices. The Journal of Portfolio Management 15, no. 1: 4-11. <a href="http://dx.doi.org/10.3905/jpm.1988.409177">paper</a>.',
+
+		'Parsons-2006': 'Simon Parsons, Marek Marcinkiewicz, Jinzhong Niu, and Steve Phelps. (2006). Everything you wanted to know about double auctions, but were afraid to (bid or) ask. Draft Paper, Department of Computer & Information Science, Brooklyn College [Online]. <a href="http://www.sci.brooklyn.cuny.edu/~parsons/projects/mech-design/publications/cda.pdf">paper</a>. <blockquote class="ref">"Discrete-time auctions are typically uniform-price, with transaction price set to the price that gives equilibrium, but one can also imagine a discrete-time auction in which prices are set using a discriminatory mechanism (though there is no obvious reason for doing this)."</blockquote>',
+
+		'Beiner-2001': 'Nicole Beiner and Robert A. Schwartz. (2001). The Option Properties of Limit Orders in Call and Continuous Environments. In The Electronic Call Auction: Market Mechanism and Trading, pp. 101-111. (2012). <a href="https://books.google.com/books?id=fhjlBwAAQBAJ&lpg=PP1&pg=PA100#v=onepage&q&f=false">book</a>.',
+
+		'Economides-1995': 'Nicholas Economides and Robert A. Schwartz. (1995). Electronic call market trading. Journal of Portfolio Management 21, no. 3. <a href="http://www.stern.nyu.edu/networks/Economides_Schwartz_Electronic_Call_Market_Trading.pdf">paper</a>.',
+
+		'Ye-2014': 'Yinyu Ye. Lecture Note #04: Dual Interpretations and Duality Applications. (2014). MS&E310 Linear Optimization, Winter 2014-2015. <a href="http://web.stanford.edu/class/msande310/lecture04.pdf">lecture notes</a>.',
+
+		'Peters-2005': 'Mark Peters, Anthony Man–Cho So, and Yinyu Ye. (2005). A convex parimutuel formulation for contingent claim markets. NSF grant DMS 30661. <a href="http://web.stanford.edu/~yyye/cpcam-ec.pdf">paper</a>.',
+
+		'Peters-2009': 'Mark Peters. (2009). Convex mechanisms for pari-mutuel markets. ProQuest. <a href="http://gradworks.umi.com/33/43/3343875.html">thesis</a>. <blockquote class="ref"> "Without the requirement for unique prices, this problem can be solved as a simple linear model. However, unique prices are important for traders since they can be assured that there aren\'t alternative solutions to the model in which they would be charged less for their orders." (p.22)</blockquote>',
+
+		'Bossaerts-2002': 'Peter Bossaerts, Leslie Fine, and John Ledyard. (2002). Inducing liquidity in thin financial markets through combined-value trading mechanisms. European Economic Review 46, no. 9: 1671-1695. <a href="http://people.hss.caltech.edu/~jledyard/John%27s%20Papers/jl53.pdf">paper</a>.',
+
+		'Lange-2003': 'Jeffrey Lange and Nicholas Economides. (2003). A Parimutuel Market Microstructure for Contingent Claims Trading. NYU Working Paper No. EC-03-18; NYU Stern School of Business EC-01-13. <a href="http://ssrn.com/abstract=294306">paper</a>.',
+
+		'Goel-2008': 'Sharad Goel, David Pennock, Daniel M. Reeves, and Cong Yu. (2008). Yoopick: A Combinatorial Sports Prediction Market. In AAAI: pp. 1880-1881. <a href="https://www.aaai.org/Papers/AAAI/2008/AAAI08-329.pdf">paper</a> and <a href="http://blog.oddhead.com/2008/07/03/yoopick-a-sports-prediction-contest-on-facebook-with-a-research-twist/">blog post</a>.',
+
+		'Clark-2014': 'Jeremy Clark, Joseph Bonneau, Edward W. Felten, Joshua A. Kroll, Andrew Miller, and Arvind Narayanan. (2014). On Decentralizing Prediction Markets and Order Books. In Workshop on the Economics of Information Security, State College, Pennsylvania. <a href="http://weis2014.econinfosec.org/papers/Clark-WEIS2014.pdf">paper</a>. <blockquote class="ref">"In a call market, orders are placed over an interval of time and then executed as a batch. While less common than continuous markets, they are sometimes used on low-volume stocks, to open and close an otherwise continuous market, or to resume after a halt. In a call market, orders are sorted by precedence, and the best bids proceed to be matched with the best asks until no more orders can be executed."</blockquote>',
+
+		'OHara-1995': 'Maureen O\'Hara. (1995). Market microstructure theory. Blackwell, Cambridge, MA. ISBN 1-55786-443-8. <a href="https://openlibrary.org/books/OL1103097M/Market_microstructure_theory">book</a>.',
+
+		'AbernethyKale-2013': 'Jacob Abernethy and Satyen Kale. Adaptive market making via online learning. (2013). In Advances in Neural Information Processing Systems, pp. 2058-2066. <a href="http://papers.nips.cc/paper/4910-adaptive-market-making-via-online-learning.pdf">paper</a>. <blockquote class="ref">"we assume that the MM interacts with a continuous double auction via an order book, and the MM can place both market and limit orders to the order book."</blockquote>',
+
+		'Chakraborty-2015': 'Mithun Chakraborty, Sanmay Das, and Justin Peabody. (2015). Price Evolution in a Continuous Double Auction Prediction Market with a Scoring-Rule Based Market Maker. In Twenty-Ninth AAAI Conference on Artificial Intelligence. Chicago. <a href="http://www.cse.wustl.edu/~mithunchakraborty/AAAI15.pdf">paper</a>.',
+
+		'Chakraborty-2011': 'Tanmoy Chakraborty and Michael Kearns. (2011). Market Making and Mean Reversion. Proceedings of the 12th ACM conference on Electronic commerce (EC \'11). ACM, New York, NY, USA, 307-314. <a href="https://www.cis.upenn.edu/~mkearns/papers/marketmaking.pdf">paper</a>.',
+
+		'Cartea-2014': 'Álvaro Cartea, Sebastian Jaimungal, and Jason Ricci. (2014). Buy low, sell high: A high frequency trading perspective. SIAM Journal on Financial Mathematics, 5(1), 415-444. <a href="http://www2.warwick.ac.uk/fac/soc/wbs/subjects/finance/fof2012/programme/carteajaimungalriccihft_wbs.pdf">paper</a> and <a href="https://workspace.imperial.ac.uk/mathfin/Public/Seminars%202012-2013/Cartea_Dec%202012_Slides.pdf">slides</a>.',
+
+		'Guilbaud-2013': 'Fabien Guilbaud and Huyen Pham. (2013). Optimal high-frequency trading with limit and market orders. Quantitative Finance, 13(1), 79-94. <a href="http://arxiv.org/pdf/1106.5040.pdf">paper</a>.',
+
+		'Ellis-2010': 'Nan S. Ellis, Lisa M. Fairchild, and Harold D. Fletcher. (2010). NYSE Response to Specialist Misconduct: An Example of the Failure of Self-Regulation, The. Berkeley Bus. LJ, 7, 102. <a href="http://scholarship.law.berkeley.edu/cgi/viewcontent.cgi?article=1070&context=bblj">paper</a>.',
+
+		'AbernethyChen-2013': 'Jacob Abernethy, Yiling Chen, and Jennifer Wortman Vaughan. (2013). Efficient market making via convex optimization, and a connection to online learning. ACM Transactions on Economics and Computation 1, no. 2:12. <a href="http://web.eecs.umich.edu/~jabernet/papers/ACV12.pdf">paper</a>, <a href="http://www.jennwv.com/courses/W12/optframework.pdf">slides</a> and <a href="http://videolectures.net/nipsworkshops2011_wortman_vaughan_convex/">video</a>.',
+
+		'Schwartz-2004': 'Robert A. Schwartz and Reto Francioni. (2004). Equity Markets in Action: The Fundamentals of Liquidity, Market Structure & Trading. Hoboken: John Wiley & Sons. <a href="https://books.google.com/books?id=cDkX4kuO8awC&pg=PA178&dq=inauthor:%22Robert+A.+Schwartz%22+animating+book+building&hl=en&sa=X&ei=ZONnVc7sCuO0sASOz4H4Bw&ved=0CCwQ6AEwAA#v=onepage&q=inauthor%3A%22Robert%20A.%20Schwartz%22%20animating%20book%20building&f=false">book</a>.',
+
+		'Schwartz-2006': 'Robert A. Schwartz, John Aidan Byrne, and Antoinette Colaninno. (2006). Electronic vs. Floor Based Trading. New York: Springer. <a href="https://books.google.com/books?id=TVFZwDUBoncC&lpg=PA6&dq=inauthor%3A%22Robert%20A.%20Schwartz%22%20%22active%20role%20in%20the%20book%20building%20process%22&pg=PA6#v=onepage&q=inauthor%3A%22Robert%20A.%20Schwartz%22%20%22active%20role%20in%20the%20book%20building%20process%22&f=false">book</a>.',
+
+		'Dudik-2014': 'Miroslav Dudík, Rafael Frongillo, and Jennifer Wortman Vaughan. (2014). Market making with decreasing utility for information. arXiv preprint arXiv:1407.8161. <a href="http://arxiv.org/abs/1407.8161">paper</a> and <a href="http://www.probabilityandfinance.com/GTP2014/Slides/Frongillo.pdf">slides</a>.',
+
+		'Othman-2012': 'Abraham Othman and Tuomas Sandholm. (2012). Profit-charging market makers with bounded loss, vanishing bid/ask spreads, and unlimited market depth. In Proceedings of the 13th ACM Conference on Electronic Commerce, pp. 790-807 <a href="http://www.cs.cmu.edu/afs/cs/Web/People/sandholm/profitChargingMarketMaker.ec12.pdf">paper</a> and <a href="https://github.com/ChrisCalderon/MSR-Implementations/blob/master/abe_msr.py">code</a>.',
+
+		'Abernethy-2014': 'Jacob D. Abernethy, Rafael M. Frongillo, Xiaolong Li, and Jennifer Wortman Vaughan. (2014). A general volume-parameterized market making framework. In Proceedings of the fifteenth ACM conference on Economics and computation, pp. 413-430. <a href="http://research.microsoft.com/pubs/215408/vpm.pdf">paper</a>.',
+
+		'Buiter-2007': 'Willem H. Buiter. (2007). Is Numérairology the Future of Monetary Economics?. Open Economies Review 18, no. 2 (2007): 127-156. <a href="http://www.nber.org/papers/w12839">paper</a>'
+
+	};
+
+
+	var refsDone = [];
+
+	var notesDone = [];
+	var NOTE_SYMBOLS = ['*', '†', '‡', '§', '‖', '¶'];
+
+
+	// note and ref tooltips powered by https://github.com/stevenbenner/jquery-powertip
+
+
+        $(document).ready(function() {
+
+
+        		$('a.ref').each(function() {
+
+        			var ref_key = $(this).attr('id');
+        			console.log('ref_key:', ref_key);
+
+        			if (refsDone.indexOf(ref_key) === -1) {
+        				refsDone.push(ref_key);
+        				ref_i = refsDone.length;
+        				$("#references").append('<li id="ref-'+ref_key+'">'+REFS[ref_key]+'</li>');
+        			} else {
+        				ref_i = refsDone.indexOf(ref_key) + 1;
+        			}
+
+
+        			$(this).text('['+(ref_i)+']');
+
+        			$(this).data('powertip', REFS[ref_key]);
+
+        			$(this).powerTip({
+						    placement: 'e',
+						    mouseOnToPopup: true,
+								smartPlacement: true
+							});
+
+        		});
+
+
+
+
+						$('a.note').each(function() {
+							var note_key = $(this).attr('id');
+							notesDone.push(note_key);
+
+							var note_symbol = NOTE_SYMBOLS[notesDone.length - 1];
+
+							$(this).data('powertip', '<span>'+NOTES[note_key]+'</span>');
+
+							$(this).text('['+note_symbol+']');
+
+							var place_val = 'e';
+							if (note_key === 'SmartMarket') {
+								place_val = 'w';
+							}
+
+							$(this).powerTip({
+								placement: place_val,
+								mouseOnToPopup: true,
+								smartPlacement: true
+							});
+
+							$("#notes").append('<p id="note-'+note_key+'">['+note_symbol+'] '+ NOTES[note_key] + '</p>');
+
+
+						});
+
+
+
+
+						$('body').on('touchstart', 'a.ref, a.note', function(event) {
+							event.preventDefault();
+							event.stopPropagation();
+							$(this).powerTip('show');
+						});
+
+						$('body').on('touchstart', 'div:not(#powerTip, a.ref, a.note)', function() {
+							$.powerTip.hide();
+						});
+
+
+        });
+
+
+    </script>
+
+
+
+
+	</head>
+	<body>
+
+
+
+	<div class="wrapper">
+
+		<div style="float:right">
+			A green paper<sup><a id="GreenPaper" class="note" href="#note-GreenPaper">[*]</a></sup>
+			by Casey Detrio
+			<br/>
+			July 2015
+		</div>
+
+		<h1>Smart Markets for Stablecoins</h1>
+		<h3 class="subtitle" style="margin-bottom:0; padding:0">Providing Liquidity on Blockchains with Decentralized Autonomous Market Makers for Combinatorial Portfolios</h3>
+		<h5 style="margin-top:0; padding:0">(quick-and-dirty version)</h4>
+
+		<p>This document aims to provide <a class="dotted" href="http://worrydream.com/ExplorableExplanations/">explorable examples</a>. Included below are three interactive charts:<br>
+
+		<a href="#BundlePayoffChart" style="color:Crimson; text-decoration:underline; font-size:1.2em">1. Portfolios of Binary Options</a>
+
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href="#LPAuctionChart" style="color:Crimson; text-decoration:underline; font-size:1.2em">2. Combinatorial Auctioneer</a>
+
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href="#AMMDepthChart" style="color:Crimson; text-decoration:underline; font-size:1.2em">3. Automated Market Maker</a>
+
+
+		<hr>
+
+		<h2 style="display:inline">Abstract</h2><sup><a id="AboutTerms" class="note" href="#note-AboutTerms">[*]</a></sup>
+
+		<p>
+			Mechanisms designed to create stable-value cryptoassets, or "stablecoins", can be categorized as two basic types: (1) monetary policy schemes, and (2) hedging strategies. Monetary policy schemes attempt to stabilize price by adjusting coin supply, while hedging strategies stabilize value by transferring price volatility risk from hedgers to speculators. Both types ultimately depend on market liquidity; without sufficient liquidity, neither type is viable. To enhance liquidity, we propose the use of two “smart market”<sup><a id="SmartMarket" class="note" href="#note-SmartMarket">[*]</a></sup> mechanisms: (1) combinatorial auctions with batch processing, or batch combinatorial auctions; and (2) automated market makers<sup><a id="SmartAMM" class="note" href="#note-SmartAMM">[*]</a></sup>.
+		<p>
+			Combinatorial auctions aggregate liquidity by enabling multiple securities to be traded together in bundles and matched multilaterally on a combinatorial order book. Combinatorial auctions also integrate prices, improving the welfare of average traders since arbitrage-freeness or the "law of one price" is enforced by the mechanism itself rather than by advanced traders' exploitation of arbitrage opportunities. Batch processing further aggregates liquidity by enabling multiple traders to transact simultaneously at a uniform clearing price. Batch processing not only reduces traders' reliance on market makers, it also eliminates the high-frequency trading arms race by preventing traders with a tiny speed advantage from earning mechanical arbitrage profits.
+		<p>
+			An automated market maker (AMM) acts as a default liquidity provider or "market maker of last resort". An AMM also has an additional purpose: in conjuction with a combinatorial auction, it serves as a mathematical technique for calculating unique optimal clearing prices. We call an AMM programmed into a blockchain smart contract a decentralized autonomous market maker (DAMM). A DAMM is obligated by the p2p network executing its source code to hold funds in reserve for later redeemability, and to continue providing liquidity to the best of its ability regardless of market conditions.
+		<p>
+			To motivate the adoption of these two smart market mechanisms, we present an example combinatorial derivatives market for hedging and speculating on the future price of a digital currency such as bitcoin. In the example, traders use portfolios of binary options to construct synthetic positions that replicate the payoffs of conventional derivatives, such as options and futures. The advantage of trading these synthetic positions compared to conventional derivatives is that the combinatorial market structure enables all synthetic positions to be matched multilaterally in a unified pool of liquidity. Thus, trading synthetic positions on a combinatorial order book enhances liquidity, gives traders greater leverage and reduces their transaction costs.
+		<p>
+			The features and guarantees of batch combinatorial auctions and DAMMs should help jump-start liquidity, reduce spreads, prevent "flash crashes", and ensure price convergence.
+		</p>
+
+		<hr>
+
+
+		<h2>0&nbsp;&nbsp; Introduction: From Legacy Institutions to Smart Markets</h2>
+
+
+		<p>
+			The most widely used method for trading securities is the continuous double auction (CDA). The CDA is a legacy institution<sup><a id="Friedman-1993" class="ref" href="#Friedman-1993">[n]</a></sup> inherited from over a century ago, a time when human specialists executed the core mechanism by recording in <a class="hilite" href="https://youtu.be/74L2aEHBtCk?t=4m36s">paper-and-pencil order books</a> the bids and offers handed to them by floor traders. Modern electronic markets have replaced human specialists with <a class="dotted" href="http://www.nature.com/news/physics-in-finance-trading-at-the-speed-of-light-1.16872">ultra fast</a> computers, but the core mechanism remains a basic CDA. Advanced traders utilize computers in <a class="dotted" href="https://queue.acm.org/detail.cfm?id=2534976">sophisticated ways</a>, but they do so only on the periphery of the core mechanism (Phase 1.5).<sup><a id="Pennock-2012" class="ref" href="#ref-Pennock-2012">[n]</a></sup>
+
+		<p>
+			The “continuous” in “continuous double auction” means that bids and offers are sorted by <a class="dotted" href="http://www.ashbooth.com/blog/2014/02/05/limit-order-books-introduction/">price-time priority</a> and orders are processed serially in continuous time. Serial processing of orders in continuous time creates an advantage for traders with fast response times, who can trade against “stale” orders before slower traders. In other words, fast traders can exploit mechanical or latency arbitrage opportunities.<sup><a id="Wah-2013" class="ref" href="#ref-Wah-2013">[n]</a></sup> In contrast, batch auctions process orders in batch in discrete time, so there is no speed advantage; orders from fast traders and slow traders alike are executed simultaneously at a uniform clearing price, improving <a class="dotted" href="https://en.wikipedia.org/wiki/Welfare_economics#Efficiency">welfare</a> and reducing <a class="dotted" href="https://en.wikipedia.org/wiki/Transaction_cost">transaction costs</a>.<sup><a id="Budish-2015" class="ref" href="#ref-Budish-2015">[n]</a></sup>
+
+		<p>
+			CDAs are used as a financial "<a class="hilite" href="http://dpennock.com/talks/combo-betting-microsoft-1-2009.pdf">uber-hammer</a>" for the trading of multiple related securities, such as options in an <a class="dotted" href="http://www.nasdaq.com/symbol/aapl/option-chain">option chain</a>. Each security trades separately on an independent order book, which fragments liquidity and segregates prices. Fragmented liquidity exacerbates the <a class="dotted" href="http://www.investopedia.com/terms/t/thinmarket.asp">thin market</a> problem. Segregated pricing of related securities leads to statistical arbitrage opportunities, which, like mechanical arbitrage opportunities, are exploited by advanced traders on the periphery of the core mechanism (Phase 1.5).
+		</p>
+
+
+		<br>
+
+		<div class="phase-slides">
+
+			<div style="text-align:left; max-width:200px; display:inline-block; margin-right:15px">
+				<img class='thumb' style="width:200px; margin-bottom:10px" src='images/phase-0.png' data-zoom-padding='100' data-zoom-url='images/phase-0.png' data-zoom-overlay='true'><br>
+				<span style="font-size:0.8em">Phase 0: Human operated mechanism. (source: <a id="Pennock-2012" class="ref" href="#ref-Pennock-2012">[N]</a>)</span>
+			</div>
+
+			<div style="text-align:left; max-width:200px; display:inline-block; margin-right:15px">
+				<img class='thumb' style="width:200px; margin-bottom:10px" src='images/phase-1point0.png' data-zoom-padding='100' data-zoom-url='images/phase-1point0.png' data-zoom-overlay='true'><br>
+				<span style="font-size:0.8em">Phase 1.0: Computers mimic humans; mechanism is faster but not better. (source: <a id="Pennock-2012" class="ref" href="#ref-Pennock-2012">[N]</a>)</span>
+			</div>
+
+			<div style="text-align:left; max-width:200px; display:inline-block; margin-right:15px">
+				<img class='thumb' style="width:200px; margin-bottom:10px" src='images/phase-1point5.png' data-zoom-padding='100' data-zoom-url='images/phase-1point5.png' data-zoom-overlay='true'><br>
+				<span style="font-size:0.8em">Phase 1.5: Agents on the periphery get smarter, but the core mechanism is still dumb. Computational power on the periphery identifies abundant arbitrage opportunities in the center. (source: <a id="Pennock-2012" class="ref" href="#ref-Pennock-2012">[N]</a>)</span>
+			</div>
+
+			<div style="text-align:left; max-width:200px; display:inline-block">
+				<img class='thumb' style="width:200px; margin-bottom:10px" src='images/phase-2point0.png' data-zoom-padding='100' data-zoom-url='images/phase-2point0.png' data-zoom-overlay='true'><br>
+				<span style="font-size:0.8em">Phase 2.0: Smart core mechanism does basic statistical inference, automatically propagating price changes and thus eliminating opportunities for arbitrage. Agents on the periphery are rewarded for providing predictive information rather than for correcting short-term mispricings. (source: <a id="Pennock-2012" class="ref" href="#ref-Pennock-2012">[N]</a>)</span>
+			</div>
+
+		</div>
+
+
+		<br>
+
+
+		<p>
+			<a class="hilite" href="https://en.wikipedia.org/wiki/Smart_market">Smart markets</a> replace multiple double auctions with a sophisticated combinatorial auction as the core mechanism (Phase 2.0).<sup><a id="Rassenti-1982" class="ref" href="#ref-Rassenti-1982">[n]</a></sup> Because double auctions simply sort bids and asks, they are only capable of <i>bilateral</i> order matching on two-sided order books. And since double auctions can only do bilateral order matching, multiple securities must be traded in parallel on disconnected, two-sided order books; an arrangement that fragments liquidity. In contrast, combinatorial auctions solve complex optimization problems, so they can perform <i>multilateral</i> order matching on a united, multi-sided, combinatorial order book. Since multilateral order matching on a combinatorial order book enables multiple securities to be traded together in the same combinatorial auction, smart markets aggregate liquidity.
+
+		<p>
+			Furthermore, a combinatorial mechanism can integrate the prices of related securities, ensuring that prices remain <a class="dotted" href="https://en.wikipedia.org/wiki/Arbitrage#Arbitrage-free">arbitrage-free</a> even if unsophisticated traders place mispriced orders. That is, the core mechanism itself maintains arbitrage-freeness by propagating price changes automatically. In contrast, the conventional method of using CDAs relies on advanced traders to maintain arbitrage-freeness by exploiting mispriced orders (Phase 1.5). Thus, by automatically integrating prices and aggregating liquidity, smart markets improve the welfare of the average trader and reduce their transaction costs, resulting in a more efficient market.<sup><a id="McCabe-1991" class="ref" href="#ref-McCabe-1991">[n]</a></sup>
+
+		</p>
+
+
+		<h3>0.1&nbsp;&nbsp; Stablecoins and market liquidity</h3>
+
+		<p>
+			Mechanisms designed to create stable-value <a class="hilite" href="https://www.youtube.com/watch?v=PGyfT7Asdzw">cryptoassets</a>, or "<a class="hilite" href="https://blog.ethereum.org/2014/11/11/search-stable-cryptocurrency/">stable-coins</a>", can be categorized as two basic types: (1) monetary policy schemes, and (2) hedging strategies. Monetary policy schemes attempt to stabilize price by adjusting coin supply;<sup><a id="Sams-2014" class="ref" href="#ref-Sams-2014">[n]</a></sup> whereas hedging strategies stabilize value by transferring price volatility risk from the hedgers to speculators. On the one hand, monetary policy schemes are only effective during expansion, or periods of increasing demand, and don't work during periods of contraction ("<a class="dotted" href="http://en.wikipedia.org/wiki/Pushing_on_a_string#Monetary_policy">pushing on a string</a>"). On the other hand, hedging strategies are only usable when liquidity is available, as every hedger must be matched with a speculator.
+
+		<p>
+			Both types of stablecoin mechanisms ultimately depend on market liquidity, though for hedging strategies the dependency is more explicit. If we assume that liquidity will always be available, then in theory many different schemes and strategies could work. But in practice, without sufficient liquidity any mechanism will fail or cease to be usable due to wide spreads and high transaction costs.
+
+		<p>
+			Note that there are <a class="dotted" href="https://docs.google.com/viewer?url=http://economics.mit.edu/files/2124">multiple types of liquidity</a>, such as “funding liquidity” and “balance sheet liquidity”, and the term “liquidity” is often used ambiguously. We use it only in the strict sense of <a class="dotted" href="https://en.wikipedia.org/wiki/Market_liquidity">market liquidity</a>, or <a class="dotted" href="https://en.wikipedia.org/wiki/Bid–ask_spread">bid-ask spread</a> and order book depth. The other types of liquidity and their relationships to monetary policy, price stability, and solvency will be discussed in the long version of this document. For now, a quick-and-dirty comparison between monetary policy and hedging strategies is included in the appendix. But since both stablecoin types ultimately depend on market liquidity, it is our primary concern.
+
+		<p>
+			The specifics of market liquidity and trading mechanisms are studied in the field of <a class="dotted" href="https://en.wikipedia.org/wiki/Market_microstructure">market microstructure</a>, a topic that is not typically covered in microeconomics and macroeconomics courses. Most economics students are taught to abstract away from particular trading mechanisms and study general models of supply and demand equilibrium under the assumption of perfect liquidity.<sup><a id="EconCourse" class="note" href="#note-EconCourse">[*]</a></sup>
+
+		<p>
+			The approach in this document is to avoid making any assumptions about market liquidity. To that end, the focus necessarily turns to <a class="dotted" href="https://en.wikipedia.org/wiki/Market_microstructure#Market_structure_and_design">market structure and design</a>. In particular, we discuss how a combinatorial market structure enhances liquidity for hedging strategies, the benefits of batch auctions with uniform-price clearing, and how automated market makers can be used as reliable default liquidity providers.
+
+
+		<p>
+			Relevant topics that we do <b>not</b> discuss include: querying external price feeds and resolving market outcomes (e.g. <a class="dotted" href="https://github.com/truthcoin/www.truthcoin.info/blob/gh-pages/faq/index.md#the-svd-resolution-algorithm">Truthcoin voter consensus</a>, <a class="dotted" href="https://blog.ethereum.org/2014/03/28/schellingcoin-a-minimal-trust-universal-data-feed/">SchellingCoin data feeds</a>, or <a class="dotted" href="http://gavintech.blogspot.com/2014/06/bit-thereum.html">semi-trusted oracles</a> and <a class="dotted" href="https://www.realitykeys.com/">oracle services</a>), and smart contract implementation details (e.g. <a class="dotted" href="https://blockstream.com/sidechains.pdf">bitcoin sidechains</a>, <a class="dotted" href="https://github.com/ethereum/wiki/wiki/Ethereum-Development-Tutorial">Ethereum scripts</a>, or various "<a class="dotted" href="http://hyperledger.com/">decentralized ledger</a>" platforms); there is much discussion about these topics elsewhere.
+
+		</p>
+
+
+
+		<h3>0.2&nbsp;&nbsp; Four essential market mechanisms</h3>
+
+		<p>
+			In any healthy market, we find four essential mechanisms: (1) an issuer, (2) a <a class="dotted" href="https://en.wikipedia.org/wiki/Bankers%27_clearing_house">clearinghouse</a>, (3) an auctioneer, and (4) a market maker. Cryptocurrency markets can be analyzed in terms of whether or not these four mechanisms are <i>on-chain mechanisms</i> or <i>third-party agents</i>. Bitcoin has an on-chain issuer (the <a class="dotted" href="http://en.wikipedia.org/wiki/Bitcoin#Supply">block reward</a>) and an on-chain clearinghouse (a public-private key protocol that transfers coins from input addresses to output addresses). But the auctioneers and market makers for bitcoin are third-party agents, usually on centralized exchanges. Ripple has an on-chain clearinghouse and on-chain auctioneers (or "on-ledger"), as order book and trade matching functionality is implemented directly in the protocol. But the <a class="dotted" href="https://ripple.com/knowledge_center/gateways/">issuers</a> and <a class="dotted" href="https://ripple.com/knowledge_center/market-makers/">market makers</a> on Ripple are third party agents. Truthcoin proposed <a class="hilite" href="https://github.com/truthcoin/www.truthcoin.info/blob/gh-pages/faq/index.md#how-do-you-address-the-problem-of-low-liquidity">on-chain market makers</a>. On-chain mechanisms <a class="dotted" href="http://en.wikipedia.org/wiki/Disintermediation">disintermediate</a> by replacing middle-men who have <a class="dotted" href="http://en.wikipedia.org/wiki/Principal%E2%80%93agent_problem">conflicting incentives</a> with decentralized <a class="hilite" href="https://twitter.com/balajis/status/474428787669479425">autonomous agents</a> obligated (by cryptographic verification) to execute common computer code on a peer-2-peer network.
+
+		<p>
+			Issuers and clearinghouses will be discussed in the long version of this document. For this quick-and-dirty version, we focus on auctioneers and market makers.
+
+		<p>
+			A <b>market maker</b> is a temporal intermediary between buyers and sellers who demand <i>immediacy</i> but arrive at <i>different times</i>. All market makers must have funds and must take risk as they are direct participants in the market, using their own funds to buy from sellers and sell to buyers. By staying in a market across time and continually acting as a counterparty in trades, the market maker is said to <b>provide liquidity</b> to the other buyers and sellers as they come and go. In the financial industry, <a class="hilite" href="http://en.wikipedia.org/wiki/Market_maker">market makers</a> have also been called <a class="dotted" href="http://www.investopedia.com/terms/s/specialist.asp">specialists</a>, <a class="dotted" href="http://en.wikipedia.org/wiki/Stockjobber">stockjobbers</a>, dealers, <a class="dotted" href="http://en.wikipedia.org/wiki/Broker-dealer">broker-dealers</a>, <a class="dotted" href="https://en.wikipedia.org/wiki/Flow_trading">flow traders</a>, and <a class="dotted" href="https://en.wikipedia.org/wiki/Scalping_(trading)">scalpers</a>.
+
+		<p>
+			An <b>auctioneer</b> is an agent who conducts an auction, responsible for organizing buyers and sellers (traders) arriving at the <i>same place</i>. Auctioneers don't have funds and never take risk as they are mere organizers, not participants. Auctions that require all participating traders to transact at the <i>same time</i> are <b>batch auctions</b> (also known as call auctions). Auctions that permit traders to transact whenever they arrive, or in other words at <i>different times</i>, are <b>continuous auctions</b>.
+
+		<p>
+			In order for trade to occur, traders must meet at the <i>same place and time</i>. If traders don't meet, then they can't trade (the most basic form of <a class="dotted" href="http://en.wikipedia.org/wiki/Market_failure">market failure</a>). Auctioneers enable trade by bringing traders together to the same place (and for batch auctions, at the same time as well). Market makers enable trade by intermediating between traders who come to the same place but at <i>different times</i>. <a class="dotted" href="http://en.wikipedia.org/wiki/Arbitrage">Arbitrageurs</a> enable trade by intermediating between traders who are in <i>different places</i>. In modern electronic markets the auctioneers are <i>order matching algorithms</i>, and the places where traders meet are <i>Limit Order Books</i>.
+
+
+		<h2>1&nbsp;&nbsp; Combinatorial Bundles/Portfolios</h2>
+
+
+		<p>
+			In a traditional auction such as an english auction or a dutch auction, one seller sells a <i>specific amount of a single item</i> to multiple potential buyers (the bidders). In a <b>double auction</b>, there are multiple sellers and multiple buyers, both sides offering to sell and offering to buy <i>various amounts of a single item</i>. For over a century, the double auction has been the standard mechanism most commonly used for the trading and exchange of financial instruments (i.e. stocks, bonds, currencies, futures, options, and so on).
+
+		<p>
+			In a <b>combinatorial auction</b>, multiple buyers bid on <i>combinations of various amounts of multiple items</i> referred to as <b>bundles</b>, packages or <b>portfolios</b>. Examples of items commonly traded in <a class="hilite" href="http://en.wikipedia.org/wiki/Combinatorial_auction">combinatorial auctions</a> include wireless spectrum licenses, bus routes, and personal property sold in estate auctions. Rossenti et. al., who first proposed combinatorial auctions, described them as <b>smart markets</b>.<sup><a id="Rassenti-1982" class="ref" href="#ref-Rassenti-1982">[n]</a></sup> The term smart market emphasizes that combinatorial auctions solve complex optimization problems; in contrast, legacy auctions execute simple sorting processes.
+		</p>
+
+		<h3>1.1&nbsp;&nbsp; Binary options and portfolio payoffs</h3>
+
+		<p>
+			The example market that this document presents is a combinatorial auction where the items traded are <b>binary options</b>. Generically, the <b>payoff</b> of a <a class="dotted" href="http://en.wikipedia.org/wiki/Binary_option">binary option</a> is either zero, or greater than zero. But our market trades a specific class of binary options where the payoff is either zero or one (a unit amount of a <a class="dotted" href="http://en.wikipedia.org/wiki/Num%C3%A9raire">numeraire</a>), depending on the future <b>state</b> of the "world", or <b>outcome</b> of the event. In an <a class="dotted" href="http://en.wikipedia.org/wiki/Idealization">ideal model</a> of a market, or a <a class="hilite" href="http://en.wikipedia.org/wiki/Complete_market">complete market</a>, binary options are available for all possible states. Such binary options are called <a class="hilite" href="http://en.wikipedia.org/wiki/Arrow%E2%80%93Debreu_model#Economics_of_uncertainty:_Insurance_and_finance">Arrow-Debreu securities</a>. They are also called, with varying degrees of accuracy: <a class="dotted" href="http://en.wikipedia.org/wiki/Arrow_security">Arrow securities</a>, <a class="dotted" href="http://en.wikipedia.org/wiki/State_prices">state-price securities</a>, pure securities, primitive securities, contingent claims, state-contingent claims, state claims, <a class="hilite" href="http://web.stanford.edu/~wfsharpe/mia/prc/mia_prc1.htm">time-state claims</a>, atomic securities, atomic time-state claims, and atomic claims.<sup><a id="Sharpe-1999" class="ref" href="#ref-Sharpe-1999">[n]</a></sup> When issued by a <a class="dotted" href="http://blog.oddhead.com/2006/10/30/implementing-hansons-market-maker/">cost-function based Automated Market Maker</a> (AMM), they are just called "shares" (as in, shares of a specific outcome). We will forego technical accuracy and generally use the terms binary option and atomic security.
+
+
+		<p>
+			Binary options are simply bets (or wagers) on some event where losing bettors receive nothing, and winning bettors receive a unit amount of some currency. The chosen currency is called the numeraire (e.g. dollars, yuan, euros, bitcoins or what have you), and the unit amount is defined arbitrarily (e.g. $0.05, $1, $20, or $300). The event results on which bets can be placed are called "states of the world", or the <b>outcome space</b>. For example, if a week into the future the Kansas City Chiefs will play against the Green Bay Packers in a <a class="dotted" href="http://en.wikipedia.org/wiki/Super_Bowl_I">Super Bowl</a> game, and spectators bet on which team will win, they can be viewed as trading two different binary options in a market with two states-of-the-world (in other words, two <i>mutually exclusive</i> outcomes, or two "disjoint and exhaustive" outcomes).
+
+		<p>
+			The amount paid to place such a bet, or the cost to purchase the binary option, is called the <b>state price</b>. Whereas traditional bets cannot be resold, option contracts are traded in a market, therefore state prices can fluctuate as long as the market is open. If the sum of the state prices is less than 1.0, then a buyer can purchase an option for each state and be guaranteed to earn a profit. When state prices sum to 1.0, the market is <i>arbitrage-free</i>. When the sum is greater than 1.0, the additional amount over 1.0 is the <a class="dotted" href="http://en.wikipedia.org/wiki/Mathematics_of_bookmaking#Overround_on_multiple_bets">overround</a>, or the spread between bids and asks. The overround constitutes the market maker’s commission. State prices represent <a class="dotted" href="http://en.wikipedia.org/wiki/Odds">betting odds</a>, or the aggregate estimated chance of each outcome being realized in the future. In mathematical terms, state prices represent a <a class="dotted" href="https://en.wikipedia.org/wiki/Probability_distribution">probability distribution</a> over an outcome space.
+
+		<p>
+			In our example market, the outcome space is the price of a volatile cryptocurrency (BTC) at a future <i>expiration date</i>. (Or more precisely, the outcome space is the set of possible future prices, one of which will be realized on the expiration date.)
+
+		<p>
+			Since our example market is combinatorial, traders buy and sell <i>contract bundles</i>, or <b>portfolios of atomic securities</b>, or equivalently <b>bundles of binary options</b>. Such bundles or portfolios could be described with many different names that would all be roughly equivalent, such as: "packages of time-state claims", or "linear combinations of primitive securities", and so on. We will use the terms <i>bundle</i> and <i>portfolio</i> interchangeably. We use bundle to emphasize that they are traded in a combinatorial auction, and portfolio to emphasize that they are financial securities.
+
+		<p>
+			Each portfolio is a specification of a <b>payoff vector</b>. Each component of a portfolio specifies the quantity of binary options on a particular outcome, and is equal to the portfolio's payoff in that state. Each binary option in a portfolio is an <b>atomic security</b>. An <a class="hilite" href="http://web.stanford.edu/~wfsharpe/mia/prc/mia_prc1.htm">atomic security</a> is a <a class="dotted" href="http://en.wikipedia.org/wiki/Unit_vector">unit vector</a> of a <a class="dotted" href="http://en.wikipedia.org/wiki/Vector_space">vector space</a> called the <a class="hilite" href="http://www.princeton.edu/~markus/teaching/Fin501/02Lecture.pdf">payoff space</a>. The number of atomic securities is equal to the dimensionality of the payoff space. Every possible portfolio in a market is a <a class="dotted" href="http://en.wikipedia.org/wiki/Linear_combination">linear combination</a> of its atomic securities. In other words, each portfolio is a point in the payoff space, and the payoff space is <a class="dotted" href="http://en.wikipedia.org/wiki/Linear_span">spanned</a> by the atomic securities. A portfolio that has the same payoff in every state is called a <a class="hilite" href="http://web.stanford.edu/~wfsharpe/mia/prc/mia_prc2.htm#riskless"><i>riskless security</i></a>.<sup><a id="Sharpe-1999" class="ref" href="#ref-Sharpe-1999">[n]</a></sup>
+
+
+
+		<h3>1.2&nbsp;&nbsp; Synthetic positions with portfolios of binary options</h3>
+
+		<p>
+			The interactive chart below provides a visualization of how portfolios of binary options can replicate the cash flows of <a class="dotted" href="http://en.wikipedia.org/wiki/Option_%28finance%29#The_basic_trades_of_traded_stock_options_.28American_style.29">conventional options</a> and <a class="dotted" href="http://en.wikipedia.org/wiki/Futures_contract">conventional futures</a>. A trader who buys such a portfolio will have a <a class="hilite" href="http://en.wikipedia.org/wiki/Synthetic_position">synthetic position</a> with a payoff that replicates the payoff of the conventional financial instrument. Since options and futures are <a class="dotted" href="http://en.wikipedia.org/wiki/Derivative_%28finance%29">derivatives</a>, our example market should be compared to markets for derivatives rather than <a class="dotted" href="http://en.wikipedia.org/wiki/Spot_market">spot markets</a>.
+
+		<p>
+			The outcome space of our market is not continuous, but a set of discrete prices, so conventional payoffs are only approximately replicated (a continuous price space is mapped to a set of discrete intervals, and each interval is approximated by a single discrete price). In the example below, the set of fifteen discrete prices is [$5.13, $5.64, ... $17.72, $19.49], roughly the range from $5.00 to $20.00. These prices were chosen for their logarithmic distribution, which results in a more intuitive bar chart. The range was chosen to center on a $10.00 starting price, and with a lower bound of ~$5.00 so that a 50% price decrease could be hedged. The upper bound of ~$20.00 is symmetric with the lower bound.
+
+		<p>
+			Since the outcome space in this example is a set of fifteen discrete prices, it is a market with fifteen dimensions spanned by fifteen binary options. A portfolio or bundle is therefore a vector with fifteen components. Bundles are <i>combined</i> by adding their vectors. Bundles that combine to form a riskless security are called <b>complementary bundles</b> or <b>matching bundles</b>; and the riskless security is called a <b>complete bundle</b> or <i>exhaustive bundle</i>. Because bundles are matched multilaterally in a combinatorial auction, a complementary or matching set can contain more than two bundles.
+
+		<p>
+			Since complete bundles are riskless securities, by matching complementary bundles into complete bundles the auctioneer ensures that the funds paid in will be equal to the funds paid out, regardless of which outcome is realized on the expiration date. In other words, by taking the bundles that traders buy individually and combining them to form complete bundles, the combinatorial auctioneer maintains a "<a class="dotted" href="http://www.britannica.com/topic/bookmaking-gambling">balanced book</a>" or "<a class="dotted" href="http://www.investopedia.com/terms/m/matchedbook.asp">matched book</a>" (except while bookies and dealers charge an overround or a spread, our auctioneer does not charge a spread).
+
+		<p>
+			If traders wish to buy a set of bundles that can't be matched into a complete bundle, then an automated market maker is needed. An automated market maker provides liquidity in the form of a bundle which is complementary to an incomplete set. In other words, the market maker sells a complementary bundle, which the auctioneer then combines with the traders' bundles to form a complete bundle. Any time the market maker sells a complementary bundle, the state prices will change in accordance with the market maker's cost function. In contrast, an auctioneer can match bundles without necessarily changing the state prices (this can be viewed as equivalent to buying a complete bundle from a market maker, since the state prices do not change when a market maker sells a complete bundle).
+
+		<p>
+			Note that this first chart is only a visualization of bundle payoffs, not auctioneer and market maker activity. The auctioneer and the market maker are the focus of the second and third charts; we mention them here only to point out their roles in matching bundles and forming complete bundles.
+
+
+
+		<p>
+			Notes for reading and using the chart:
+
+			<ul>
+				<li>In the bets section, pairs of matching bundles are indicated by an arrow symbol <i class="fa fa-arrows-h"></i>.</li>
+
+				<li>More than two bundles can also match each other. For example, "Straddle", "Write a Call", and "Write a Put" combine to form a complete bundle, as do "Butterfly", "Buy a Put", and "Buy a Call".</li>
+
+				<li><strong>When matching bundles are plotted in “Stacked” mode and the y-axis is plotted in BTC, the bar chart has the particular appearance of being flat across the top.</strong></li>
+
+				<li>The bundle sizes are fixed.</li>
+
+				<li>For <i>option bets</i>, the sizes are fixed at <a class="dotted" href="http://www.investopedia.com/terms/c/contractunit.asp">one contract unit</a> (approximately), and the call option sizes are scaled to be symmetric with the put option sizes.</li>
+
+				<li>For <i>CFD bets</i>, the sizes are fixed so that both the long and the short bets risk 100 BTC ($1,000 at $10 BTC/USD price).</li>
+
+				<li>The <b>stable portfolio</b> has the same payoff in USD value for every outcome. We can say that the stable portfolio is a riskless security in USD-space. The stable portfolio is the "Short Bundle" at 0x leverage, and it matches the "Long Bundle" at 2x leverage.</li>
+			</ul>
+
+		</p>
+
+	</div>
+
+
+
+	<div id="BundlePayoffChart" class="card ds-1" style="width:870px">
+		<div id="bundleWidget" style="border:0px dotted red; width:870px">bundle widget</div>
+	</div>
+
+
+
+	<div class="wrapper">
+
+		<p>
+			Since this example is an <i>on-chain market</i>, our choice of numeraire is restricted to a native cryptocurrency (BTC). This restriction of the numeraire makes it challenging to replicate the payoffs of conventional instruments, which are traded in markets that use USD as the numeraire. To observe how the numeraire restriction limits our ability to construct payoffs, use the y-axis toggle switch to convert the "Payoff Amount" scale between BTC and USD. Note that the y-axis toggle only converts the payoff denomination, which should not be confused with the market numeraire. The numeraire remains BTC and cannot be changed.
+
+		<p>
+			Notice that component payoffs of complete bundles are balanced when measured in BTC, but lopsided when measured in USD (the bars on the right-hand side of the bar chart are taller than the bars on the left). The lopsidedness of payoffs measured in USD is a consequence of using BTC as the numeraire. One way to overcome this is to take the synthetic-USD (i.e. the "stable portfolio") created in this BTC-numeraire market, and use it to create a second market with synthetic-USD as the numeraire. Another option is to utilize a <a class="dotted" href="http://tether.to">USD asset from a third-party issuer</a>; we excluded that option here because for a wholly on-chain "stablecoin" all four essential market mechanisms must be on-chain.
+
+		<p>
+			The leverage of these synthetic positions is based on the combinatorial market structure, that is, combinations of binary options. Each binary option in the portfolio is a derivatives contract on a specific outcome, i.e. a particular future spot price. Thus, these portfolios specify contracts at multiple price levels, similar to a strategy described before as "Stabilizing Forwards".<sup><a id="Ferguson-1988" class="ref" href="#ref-Ferguson-1988">[n]</a></sup>
+
+		<p>
+			There is an important difference between these synthetic positions and conventional leverage instruments like futures and (<a class="dotted" href="https://en.wikipedia.org/wiki/Option_style">American or European-style</a>) options. While binary options have bounded payoffs and bounded losses (or fixed-returns and fixed-losses), conventional leverage instruments have unbounded payoffs and/or unbounded losses. The long version of this document will contain further discussion of conventional leverage mechanisms, including equity margin, future margin, and forex. But in brief, the unbounded payoffs and losses of conventional derivatives are supported by a hierarchical arrangement of credit and liability, with a <a class="dotted" href="http://chicagofed.org/digital_assets/publications/understanding_derivatives/understanding_derivatives_chapter_2_central_counterparty_clearing.pdf">central counterparty</a> at the top, member brokers in the middle, and customers at the bottom. The central counterparty is liable if a member broker defaults; and member brokers are held liable if their customers default (i.e. if a customer cannot cover a margin call). Additionally, to reduce the risk of defaults, the exchange sets <a class="dotted" href="http://www.investopedia.com/terms/l/locklimit.asp">lock limits</a> that restrict the trading of <a class="dotted" href="http://farmfutures.com/story-cme-daily-price-limit-changes-feeder-cattle-live-cattle-futures-17-121725">less liquid contracts</a> to within a permitted price range, which is adjusted daily when the market re-opens. Without such limits to restrict price volatility, hierarchies of credit and liability experience <a class="dotted" href="http://www.bbc.com/news/business-30846543">brittle failure modes</a> triggered when market liquidity momentarily vanishes, leaving <a class="dotted" href="http://www.abc.net.au/news/2015-01-27/francogeddon-exposes-risks-of-leveraged-foreign-exchange-trading/6048392">stop-loss orders unexecuted due to massive slippage</a>. In contrast, a market structure based on binary options does not have such systemic risks because payoffs and losses are bounded.
+
+		<p>
+			In the chart above, users can select several types of bundles and visualize the component payoffs. However, users cannot change the bundle quantities, nor enter limit prices to bid on bundles, as they would in a user interface for an order book. Thus, the chart above is a visualization of portfolio payoffs, and <b>not</b> a visualization of an order book interface where users trade portfolios with bundle bids. A combinatorial order book for trading portfolios as bundles is presented in the next example.
+
+		</p>
+
+		<hr>
+
+		<h3>1.3&nbsp;&nbsp; Related work</h3>
+
+		<p>
+			The combinatorial market described in this document is not novel. As presented here, the market mechanism is most similar to three predecessors: (1) “combined-value trading” by Bossaerts et. al, who describe their mechanism as an “intermittent call market with a single electronic open book” wherein investors “submit orders for packages of securities and the system matches trades and computes prices by optimally combining portfolio orders”;<sup><a id="Bossaerts-2002" class="ref" href="#ref-Bossaerts-2002">[n]</a></sup> (2) Lange & Economides, who describe a "Pari-mutuel Derivative Call Auction" (PDCA) as a “game conducted as a call auction” with a “parimutuel microstructure with notional claims, limit orders, and ‘claim bundling’ across states”;<sup><a id="Lange-2003" class="ref" href="#Lange-2003">[n]</a></sup> and (3) Peters et. al. who, building on Lange & Economides, call their mechanism a “convex parimutuel call auction mechanism” (CPCAM).<sup><a id="Peters-2005" class="ref" href="#ref-Peters-2005">[n]</a></sup>
+
+		<p>
+			All three mechanisms are combinatorial in nature. To emphasize this, we use the generic term “combinatorial auction” in this document. All three mechanisms are also based on call auctions, otherwise known as batch auctions. The term “call auction” (or call market) describes a double auction with batch order processing and uniform-price clearing. We use the term “batch auction” instead, following Budish et. al. who call their (non-combinatorial) mechanism “frequent batch auctions”, which they describe as "uniform price double auctions conducted, e.g., every tenth of a second." Since the mechanism we describe is, like the three predecessors, both a combinatorial auction and a batch auction, we thus use the term “batch combinatorial auction”. We find “batch combinatorial auction” preferable as it is easily contrasted with the standard “continuous double auction”, and in combination with “combinatorial order book”, the primary features are emphasized.
+
+		<p>
+			Also relevant is a fourth predecessor, <a class="hilite" href="http://blog.oddhead.com/2008/07/03/yoopick-a-sports-prediction-contest-on-facebook-with-a-research-twist/">Yoopick</a> by Goel et. al., who describe it as a "combinatorial sports prediction market that implements a flexible betting language, and in turn facilitates fine-grained probabilistic estimation of outcomes."<sup><a id="Goel-2008" class="ref" href="#ref-Goel-2008">[n]</a></sup> Yoopick defines a market structure where the outcome space is the point spread between the final scores of two teams in a sports game, such as an NFL football game. In comparison, recall our example market for a Super Bowl game, where we structured the outcome space into two mutually exclusive outcomes: either the Chiefs win, or the Packers win. A market structure over the point spread has more than two outcomes, for example: [.., -3, -2, -1, 0, +1, +2, +3, ...], where the set of positive numbers +x is assigned to represent the Packers winning by x points, and the range is bounded on both sides at some arbitrary cutoff. To bet on a tie, participants buy binary options on "0"; to bet on the Packers winning by three or more, participants buy the bundle of binary options [+3, +4, +5, ...]; and so on. With this market structure, bettors can purchase bundles that replicate the payoffs of conventional sportsbook bets, such as money line bets and point spread bets; or they can purchase custom bundles with exotic payoffs.
+
+		<p>
+			While Yoopick defines a combinatorial market structure on the final point spread of a sports game, we define a combinatorial market structure on the future spot price of a digital currency (i.e. the BTC/USD spot price on the expiration date). Thus, the market structure that Yoopick defines for betting on sports is very similar to the market structure that we define for trading digital currency derivatives. But the respective mechanisms have a fundamental difference: while Yoopick uses a combinatorial market maker (LMSR) to accept bets, we use a combinatorial auctioneer to match orders. That is, Yoopick uses a cominatorial market maker in a <a class="dotted" href="http://www.investopedia.com/ask/answers/06/quoteorderdrivenmarket.asp">quote-driven</a> mechanism that is only capable of <i>accepting market orders</i> because it <i>does not have an order book</i>. Whereas we (like our first three predecessors) use a combinatorial auctioneer in an <a class="dotted" href="http://www.investopedia.com/ask/answers/06/quoteorderdrivenmarket.asp">order-driven</a> mechanism that is capable of <i>matching limit orders</i> on a <i>combinatorial order book</i>. To put it another way, Yoopick uses LMSR to accept combinatorial market orders at discriminatory clearing prices determined by <i>serial processing in continuous-time</i>. In contrast, we use an LP algorithm to match combinatorial limit orders at uniform clearing prices calculated by <i>batch processing in discrete-time</i>.
+
+		<p>
+			Recall that we identified four essential market mechanisms: an issuer, a clearinghouse, an auctioneer, and a market maker. The difference between Yoopick, which only utilizes a combinatorial market maker, and the first three predecessors, which all utilize a combinatorial auctioneer, highlights the distinction between auctioneers and market makers. In the context of an order-driven market, the auctioneer <i>processes limit orders and market orders</i> as they arrive at the order book; while market makers <i>generate limit orders</i> and send them to the order book. The next two examples focus on these two essential market mechanisms, respectively.
+		</p>
+
+		<hr>
+
+		<h2>2&nbsp;&nbsp; Combinatorial Auctioneers</h3>
+
+
+		<p>
+			In the next example, we experiment with using a combinatorial auctioneer to match limit orders to buy bundles, or <b>combinatorial bids</b>. While a conventional bid in a double auction imposes a price constraint on a <i>single item</i> or <i>dimension</i>, a combinatorial bid (or bundle bid) imposes a price constraint on <i>multiple items</i> or <i>dimensions</i>. A combinatorial auctioneer sums, or <a class="dotted" href="https://en.wikipedia.org/wiki/Integral#Summations">integrates</a>, the set of state prices under the constraints imposed by bid limit prices and component quantities, and matches bids when limit prices cross.
+
+		<p>
+			In our example market, each state price is the price of a binary option. The combinatorial auctioneer ensures that the sum of the state prices is never less than 1.0, so there is never a combination of binary options that can be purchased for a guaranteed profit. In other words, the odds are always <a class="dotted" href="https://en.wikipedia.org/wiki/Coherence_(philosophical_gambling_strategy)">coherent</a>, because the combinatorial auctioneer ensures that the market is always arbitrage-free. Or to put it another way, since binary options are derivatives, the combinatorial auctioneer enforces the <a class="hilite" href="http://en.wikipedia.org/wiki/Law_of_one_price">law of one price</a> in the market’s valuation of the <a class="dotted" href="http://www.investopedia.com/terms/u/underlying-security.asp">underlying security</a>. In our case, the underlying security is a digital currency (BTC).
+		</p>
+
+		<p>
+			Note that combinatorial auctions are a special case of the more general class of <i>combinatorial exchange</i> mechanisms. In a combinatorial exchange, there are multiple buyers and multiple sellers. In a combinatorial auction, there is only a single seller. Our example combinatorial market is a combinatorial auction, where the auctioneer also acts as the single seller, and the items sold are derivative contracts. Thus, when two traders enter into a contract, with one taking the short position and the other taking the matching long position, they are both "buying" distinct contracts from the auctioneer, who holds the funds or collateral until payout when the contract expires. This aspect of our combinatorial auction, where short positions are opened by "buying", is discussed further in section 2.4 with a comparison to conventional markets where short positions are opened by selling.
+
+
+		<h3>2.1&nbsp;&nbsp; Batch Combinatorial Auctions vs Continuous Double Auctions</h3>
+
+		<p>
+			The standard method of trading derivatives uses multiple double auctions. Each derivative trades on an independent order book, even if the derivatives are related in value. For example, options for the same security (i.e. options in the same <a class="dotted" href="http://www.investopedia.com/terms/o/optionchain.asp">option chain</a>) are logically related; <a class="dotted" href="http://www.investopedia.com/terms/o/option-premium.asp">premiums</a> for different strike prices are correlated. But since a double auction is only capable of <i>bilateral matching</i> of bids and asks for a single item, each strike price in the chain is traded on a separate order book. That is, different strike prices are traded in parallel on disconnected order books, as if their values were unrelated. Thus, the standard method of using double auctions is a mechanism in which <i>related items</i> are traded in <i>different places</i>, fragmenting liquidity and segregating prices. Fragmented liquidity increases transaction costs and segregated prices create arbitrage opportunities, resulting in reduced market efficiency.
+
+		<p>
+			In contrast, a combinatorial auction is capable of <i>multilateral matching</i> between multiple limit orders for multiple items in a combinatorial order book. To put it another way, a combinatorial auction aggregates limit orders for related items into a unified liquidity pool. Thus, a combinatorial auction enables <i>related items</i> to trade in the <i>same place</i>, aggregating liquidity and integrating prices. Aggregated liquidity reduces transaction costs and integrated prices eliminate arbitrage opportunities, resulting in improved market efficiency.
+
+		<p>
+			Double auctions are distinguished as either continuous auctions, or batch auctions. Batch auctions, also known as call auctions or discrete-time auctions, process orders in batch in <i>discrete-time</i>. In contrast, continuous auctions process orders serially in <i>continuous-time</i>. Serial order processing in continuous-time inherently uses a <b>discriminatory pricing</b> rule (also called pay-as-bid pricing), meaning that different trades transact at different clearing prices. Batch auctions are generally defined by the use of a <b>uniform pricing</b> rule (also called single-price clearing), meaning that all trades executed in the same batch transact at the same clearing price. Call auctions, batch auctions, discrete-time auctions, (also "uniform price auctions" and "clearing price auctions"), are all terms used to describe auctions that use a uniform pricing rule, or uniform-price clearing. In this document, we use the term "batch auction" because it emphasizes that orders are processed in batches; and we use "uniform-price clearing" because it emphasizes that trades executed in a batch all transact at the same clearing price.
+
+		<p>
+			Combinatorial auctions generally match orders in batch, though they may or may not use uniform-price clearing (for example, combinatorial auctions that maximize the auctioneer's revenue do not use uniform-price clearing). The combinatorial auction that we present matches orders in batch and uses uniform-price clearing. To make the batch processing feature explicit and emphasize the distinction from a continuous double auction, we use the term <b>batch combinatorial auction</b>.
+
+		<p>
+			Serial order matching or processing is a procedure that matches incoming orders according to <i>time priority</i>. Time priority and discriminatory price clearing are inherent to serial processing in continuous time, creating <a class="dotted" href="http://en.wikipedia.org/wiki/Perverse_incentive">perverse incentives</a> for an <a class="dotted" href="http://faculty.chicagobooth.edu/eric.budish/research/HFT-FrequentBatchAuctions.pdf">investment arms race</a> for tiny speed improvements. Such speed improvements result in a market that is more efficient in <i>time space</i> but less efficient in <i>volume space</i>. That is, the market price may be updated sooner, but counterintuitively, more volume is transacted at stale prices. In contrast, <a class="hilite" href="http://faculty.chicagobooth.edu/eric.budish/research/HFT-FrequentBatchAuctions-Slides.pdf">frequent batch auctions</a> with uniform-price clearing prioritize volume-efficiency over time-efficiency.<sup><a id="Budish-2015" class="ref" href="#ref-Budish-2015">[n]</a></sup> With batch processing in discrete time, clearing prices may not be updated instantly, but more volume is transacted at correct (i.e. not stale) prices. The improved volume-efficiency of batch processing results in increased welfare for the average trader. Additionally, since market makers are temporal intermediaries, processing all transactions simultaneously in batch auctions reduces intermediation by market makers.
+
+		<p>
+			Put another way, in continuous-time markets liquidity is "necessarily fragmented temporally".<sup><a id="Economides-1995" class="ref" href="#ref-Economides-1995">[n]</a></sup> And in markets with multiple double auctions, liquidity is fragmented spatially, or in different places (i.e. on different order books). Hence, with multiple continuous double auctions, liquidity is fragmented both spatially and temporally, or in <i>different places</i> and <i>different times</i>.
+
+		<p>
+			Thus, <b>batch combinatorial auctions provide two distinct benefits over continuous double auctions</b>. First, the <i>combinatorial</i> matching brings traders of related items together to the <i>same place</i>; related items trade on the same combinatorial order book rather than on separate order books. Second, the <i>batch</i> processing brings traders together at the <i>same time</i>; different traders transact simultaneously at the same uniform clearing price, rather than at different prices determined by trivially tiny differences in their arrival times. In short, batch combinatorial auctions aggregate liquidity by bringing traders together at the same place and time.
+
+
+		</p>
+
+		<h3>2.2&nbsp;&nbsp; Batch processing and mechanical arbitrage</h3>
+
+		<p>
+			To be clear, when we say that a combinatorial auction is arbitrage-free because it integrates prices, we mean arbitrage-free in a <i>local</i> sense. That is, the integration of prices removes "statistical arbitrage" opportunities between related items on the same combinatorial order book. On conventional order books, these "StatArb" opportunities arise because  disconnected double auctions do not integrate prices. Advanced traders watch for these opportunities to arise, using strategies such as <a class="dotted" href="https://en.wikipedia.org/wiki/Pairs_trade">pairs trading</a> or <a class="dotted" href="http://jonathankinlay.com/index.php/2015/02/developing-statistical-arbitrage-strategies-using-cointegration/">portfolio cointegration</a>. Such StatArb strategies can take advantage of short-term mispricings that occur between <i>different items on the same exchange</i>, in other words local arbitrage opportunities.
+
+		<p>
+			StatArb is distinct from arbitrage of a different type, which takes advantage of different prices for <i>the same item on different exchanges</i>. This type is arbitrage in a <i>global</i> sense. Exploiting these global opportunities does not require any form of statistical valuation, just a difference in price for the same item, hence the term "mechanical arbitrage". With continuous-time order processing, these mechanical arbitrage opportunities are exploited by the fastest traders, so the term "latency arbitrage" is also used.
+
+		<p>
+			While combinatorial order matching eliminates local statistical arbitrage opportunities, there may of course still be global arbitrage opportunities between the local combinatorial market and some external market. This is where batch processing comes in: <b>batch processing with uniform-price clearing eliminates mechanical arbitrage opportunities</b>. To be clear, if only the local market utilizes batch processing with uniform-price clearing, and the external market utilizes conventional serial processing and discriminatory pricing, then there will still be arbitrage opportunities in the external market. That is, the fastest traders can still profit by propagating prices from the local market outward to the external market. But arbitrage opportunities in the other direction, from the external market into the local market, are eliminated.
+
+		<p>
+			To understand why mechanical arbitrage opportunities from external markets into the local market are eliminated, consider how mechanical arbitrage works in a continuous-time market. With the discriminatory pricing inherent to continuous-time serial order processing, the fastest trader arrives first and gets the best price by "sniping" stale limit orders before slower traders can cancel them. But with batch processing and uniform-price clearing, the orders of fast and slow traders alike are processed simultaneously; a stale limit order does not get sniped by the fastest trader. Furthermore, when a stale limit order left over from a previous batch period is matched in the new batch period, it does not get matched at the stale limit price, but at the new uniform clearing price.
+
+		<p>
+			Since in each batch period multiple traders arrive with new bids, the uniform clearing price is updated every period to reflect the most recent prices on external markets. But mechanical arbitrage is eliminated because all orders transact simultaneously at the uniform clearing price, not at stale limit prices. All traders transacting in the batch period get the same fair price, regardless of whether they used a limit order or a market order.
+
+		<p>
+			In the context of decentralized exchanges and order matching on a blockchain, the terms "call auction" or "batch execution" are sometimes used to describe an order matching mechanism that uses discriminatory pricing.<sup><a id="Clark-2014" class="ref" href="#ref-Clark-2014">[n]</a></sup> This usage creates confusion because call auctions or discrete-time batch auctions are generally understood to use uniform-price clearing. As noted by Parsons, "Indeed Madhavan distinguishes continuous and discrete-time auctions precisely by the fact that continuous auctions use discriminatory-pricing and discrete-time auctions use uniform-pricing."<sup><a id="Parsons-2006" class="ref" href="#ref-Parsons-2006">[n]</a></sup>
+
+		<p>
+			Whether orders are processed serially in continuous-time or executed in batch in discrete-time, discriminatory ("<a class="dotted" href="http://bytemaster.github.io/article/2015/01/29/How-BitShares-Prevents-Front-Running/">you get what you asked for</a>") pricing is inherently problematic. O'Hara (speaking about a model in Rock [1991], "The Specialist's Order Book") explains the "adverse selection problem facing traders who submit limit orders":<sup><a id="OHara-1995" class="ref" href="#ref-OHara-1995">[n]</a></sup>
+
+		<blockquote class="style2">
+			The problem is that as orders execute, market participants update their beliefs on the asset's true value. Following a large sell order, the market maker lowers his expectation of the asset's value to reflect the risk that large orders are more likely the result of information-based trading. This can cause his quoted price for a large sale to fall below that of orders on the book, thereby allowing the limit orders rather than the market maker to clear the trade. Since the limit orders then transact at a price above the asset's new expected value, the limit order trader has an expected loss on the trade. Indeed, given this adverse selection problem, the optimal strategy for a limit order trader is not to trade at all, and the book would simply not exist. (O'Hara, 1995, p.193)
+		</blockquote>
+
+		<p>
+			At the root of this problem is the "free option" property of limit orders matched with pay-as-bid, discriminatory pricing. In an analysis by Beiner & Schwartz, a trader who posts a limit order can be viewed as an option writer who receives a payoff that differs depending on whether an informational event occurs or a liquidity event occurs (i.e. whether a news announcement causes a price change, or the <a class="dotted" href="https://en.wikipedia.org/wiki/Market_impact">market impact</a> of a market order causes a momentary dip). Posting a limit order is equivalent to writing a "free option" for anyone to take, and "the payoff the investor receives from a liquidity event is the compensation (s)he obtains from a 'free' option to other participants." Beiner & Schwartz conclude that in continuous-time auctions, limit orders have fixed or bounded payoffs ("payoff of a binary option"); whereas in discrete-time call auctions, limit orders have unbounded payoffs ("payoff of a standard option"). Thus, "introducing a call auction implicitly introduces a new financial asset for investors."<sup><a id="Beiner-2001" class="ref" href="#ref-Beiner-2001">[n]</a></sup>
+
+		<p>
+			Consider a trader, Alice, who posts a limit order to buy, and take two example events. One is a liquidity event: a large market sell order temporarily pushes the price below the mid-price. The other is an informational event: a large seller, Bob, dumps a market sell order right as bad news is announced, so the price falls and does not bounce back. In a continuous-time market, how does Alice fare under each event? In the case of the liquidity event, she wins a fixed payoff: the difference between her limit price and the mid-price. In the bad news case, she loses, and she receives no compensation from Bob when he takes her option for free and <a class="dotted" href="https://en.wikipedia.org/wiki/Exercise_(options)">exercises</a> it. In other words, Bob snipes her limit order, and she loses to him the the difference between her limit price and the new lower price.
+
+		<p>
+			How does Alice fare in a discrete-time batch market? In the liquidity event, she wins the difference between the uniform clearing price and the mid-price. So her payoff is not fixed by her limit price; instead, it varies with the uniform clearing price. In the bad news event, she loses, but not as severely as in the continuous-time market because she only pays the uniform clearing price, not her limit price. Thus, she receives compensation from Bob in the form of a premium equal to difference between her limit price and the uniform clearing price.
+
+		<p>
+			So, in a continuous-time auction, limit orders are free options available on a first-come-first-serve basis, exercisable at the limit price. In contrast, limit orders in a discrete-time batch auction are not free options; rather, they are orders which specify a reserve price. That is, a limit order in a batch auction is an order to transact at any price better than the reserve price. Even if a buyer is careless in specifying their reserve price, they will still only pay the fair, uniform clearing price.
+
+		<p>
+			On top of being an unfair mechanism for average traders (who aren't informed and don't demand microsecond immediacy), the discriminatory pricing implicit in continuous-time auctions also makes it difficult for market makers to provide liquidity. In modern HFT parlance, discriminatory pricing enables fast traders to "snipe" limit orders, whether those limit orders are posted by market makers or average traders. In floor trader parlance, those with a speed advantage can "pick off" dealer quotes:
+
+		<blockquote class="style2">
+			This highlights what has commonly been termed the "free option" property of limit orders. Because the limit order trader precommits to buying or selling at a particular price, he or she has in effect written an option at the specified strike price. As market prices change, this option can move in or out of the money, exposing the writer to the risk of the option being exercised at his expense. Stoll [1990] gives an example of this occurring in the Intermarket Trading System. With ITS, a dealer in Cincinnati can post quotes in an NYSE-listed stock that will automatically execute. If a floor trader in New York sees a large block in the stock or learns of any other event that might lower the price on the NYSE, he can send a sell order to Cincinnati and "pick off" the dealer before he has a chance to change his quote. (O'Hara, 1995, p.197)
+		</blockquote>
+
+		<p>
+			With discriminatory pricing in continuous-time, the speed at which one can post and and cancel orders is critical. As a result, in order to provide liquidity without suffering adverse selection to the point of bankruptcy, market makers must be as fast as the fastest traders. The costs paid to stay fast are "arbitrage rents", which "harm liquidity provision and induce a never-ending socially-wasteful arms race for speed".<a id="Budish-2015" class="ref" href="#ref-Budish-2015">[n]</a></sup> These harmful arbitrage rents are inherent to the continuous-time discriminatory-pricing market design.
+
+		<p>
+			In the context of order matching on a blockchain, whether serial or "batch", <b>the use of a discriminatory pricing mechanism merely swaps the HFT arms race with a block mining race</b>. Since discriminatory pricing enables the miner of a block to snipe any limit order in that block, anyone who posts a limit order is writing a free option for miners. Liquidity providers, rather than competing on price by posting limit orders at narrower spreads, can instead invest in block mining speed for an advantage in sniping. As explained by Budish et. al., "arbitrage rents lead to a classic prisoner's dilemma". In the case of a proof-of-work blockchain, investing in a faster hash rate is the dominant strategy. Even for consensus mechanisms other than proof-of-work (i.e. any blockchain or distributed ledger), discriminatory pricing is still problematic because snipers can still collect arbitrage rents. If the profit from market making is less than the cost paid in arbitrage rents, which is the case when order flow is insufficient or prices are too volatile (losses from sniping are greater when prices are more volatile), then the optimal strategy is to not post limit orders at all.
+
+		<p>
+			Batch processing with uniform-price clearing is a "market design response" that eliminates mechanical arbitrage rents, and thus escapes the prisoner's dilemma. Limit orders can be posted without fear of being sniped, since they transact at the uniform clearing price. And market makers must compete on price rather than speed, resulting in narrower spreads, more efficient markets, and improved trader welfare.<sup><a id="Wah-2015" class="ref" href="#ref-Wah-2015">[n]</a></sup>
+
+		</p>
+
+
+
+		<h3>2.3&nbsp;&nbsp; Matching bundle bids with a combinatorial auctioneer</h3>
+
+		<p>
+			An order matching algorithm can be seen as a process for solving a <a class="dotted" href="http://en.wikipedia.org/wiki/System_of_linear_equations">system of linear equations</a>. In the case of a continuous double auction, the system has two equations: the best bid and the best ask. The bid and the ask impose constraints (limit price and limit quantity) on two free variables: the clearing price and volume. A clearing price and volume that satisfies the constraints of the bid and the ask is a solution to the linear system. If a solution can be found, then the bid price and the ask price cross, and a trade is matched at the clearing price.
+
+		<p>
+			While a double auction matches offers for a single item, a combinatorial auction matches offers for multiple items. Therefore, a combinatorial auction has multiple clearing prices, one for each item. Since the items traded in our combinatorial market are binary options on specific outcomes or states, the clearing prices are called <b>state clearing prices</b>, or state prices. Each combinatorial bid is an equation in a linear system, and each bid imposes constraints on the state clearing prices.
+
+		<p>
+			Thus, to <a class="hilite" href="http://web.stanford.edu/class/msande310/lecture04.pdf">match bids in a combinatorial auction</a>, we must find a solution to the linear system using a <a class="dotted" href="https://en.wikipedia.org/wiki/Linear_programming">linear programming</a> (LP) algorithm, or in more modern terminology, a <a class="dotted" href="https://controls.engin.umich.edu/wiki/index.php/Linear_Optimization">linear optimization</a> algorithm.<sup><a id="Ye-2014" class="ref" href="#ref-Ye-2014">[n]</a></sup> As an aside, the word "programming" in "linear programming" is incidental for <a class="dotted" href="http://arcanesentiment.blogspot.com/2010/04/why-dynamic-programming.html">historical reasons</a>. In the field of <a class="dotted" href="https://en.wikipedia.org/wiki/Operations_research">operations research</a>, where it originated, "programming" was used in the sense of planning and decision-making, rather than "computer programming". In our case, we can think of the combinatorial auctioneer as a decision-maker who uses linear optimization to decide which bids to fill (the "<a class="dotted" href="http://www.cs.cmu.edu/~sandholm/winner-determination-final.pdf">winner determination problem</a>" or <i>matching problem</i>).
+
+		<p>
+			Taking this view further, in using an LP algorithm for <a class="hilite" href="http://blog.oddhead.com/2008/02/19/the-right-way-to-implement-a-multi-outcome-prediction-market-linear-programming/">combinatorial bid matching</a>, the auctioneer solves a <a class="dotted" href="http://en.wikipedia.org/wiki/Duality_(optimization)#Economic_interpretation">dual optimization problem</a> of resource allocation (which bids get filled) and resource valuation (at which state clearing prices). There are several types of solutions to an optimization problem, including: <i>feasible</i> solutions, which are valid under the given constraints but not necessarily optimal; <i>optimal</i> solutions, which are not necessarily unique; and <i>unique optimal</i> solutions. We want unique optimal solutions or, to speak specifically about combinatorial auctions rather than optimization problems in general, <i>unique state clearing prices</i> because otherwise the winner determination decision is arbitrary rather than fair.<sup><a id="Peters-2009" class="ref" href="#ref-Peters-2009">[n]</a></sup> The LP method we use below will calculate unique state clearing prices if it is given enough bids and the bids are of the right kind (i.e. linearly independent). If it is not given enough bids, then the solution to the system will be <a class="dotted" href="http://en.wikipedia.org/wiki/Underdetermined_system">underdetermined</a>, and the state clearing prices will not be unique. There are linear optimization methods that ensure a combinatorial auction will calculate unique state clearing prices regardless of the given bids, but they are <a class="dotted" href="http://web.stanford.edu/~yyye/cpcam-ec.pdf">more complex formulations</a> than the relatively simple LP method we use here.<sup><a id="Peters-2005" class="ref" href="#ref-Peters-2005">[n]</a></sup> For now, it is instructive to use the relatively simple LP method and better understand the problem we are facing.
+		</p>
+
+
+		<h3>2.4&nbsp;&nbsp; Visualizing a combinatorial order book</h4>
+
+		<p>
+			Our primary challenge in the example below is visualizing limit orders and state clearing prices in a combinatorial order book. The approach we take is to display an order book for each state. We use an example market of four states, so we display four order books. The difference between our four order books and conventional order books is that conventional order books are displays of (two-sided) double auctions, whereas our four order books display four items trading in bundles through a single (four-sided) combinatorial auction.
+
+		<p>
+			To better understand our approach to visualizing a combinatorial order book, first consider a conventional order book for a double auction. The “double” in double auction describes an order book with two sides, bids to buy on one side and asks to sell on the other side. When the best bid has a higher price than the best ask, the two orders are matched and a trade is executed. But which order is the bid and which is the ask is relative to how the order book is displayed. For example, when looking at a BTC/USD order book, a bid is a limit order to buy BTC, and an ask is a limit order to sell BTC. But if the <a class="dotted" href="https://en.wikipedia.org/wiki/Currency_pair">currency pair</a> is flipped to USD/BTC, then a bid is a limit order to sell BTC (buy USD), and an ask is a limit order to buy BTC (sell USD). The order book itself does not actually change. The display using USD/BTC just appears upside-down relative to the conventional BTC/USD.
+
+		<p>
+			A combinatorial order book can be understood in the same way. Recall that the items in our market are binary options on future <i>outcomes</i> or <i>states</i>. Returning to the Super Bowl example, there are two possible outcomes and two respective binary options: (1) the Green Bay Packers win, and (2) the Kansas City Chiefs win. A bet that the Packers will win is equivalent to a bet that the Chiefs will lose, and vice versa. Therefore, a bid on the Packers is equivalent to an ask on the Chiefs, and vice versa. Likewise, in a market with three possible outcomes, a bid on the first outcome is equivalent to an ask on the second and third outcomes, a bid on the second is equivalent to an ask on the first and third, and a bid on the third is equivalent to an ask on the first and second.
+
+		<p>
+			For larger outcome spaces, the relationship continues to hold: a bid on one outcome corresponds to asks on the other outcomes, and vice versa. We call such corresponding asks <b>phantom asks</b>. The concept of <a class="hilite" href="http://commerce.net/increasing-liquidity-in-multi-outcome-claims/">phantom orders</a> has been used before to aggregate liquidity by augmenting conventional order books. Combinatorial bid matching, however, <a class="hilite" href="http://blog.oddhead.com/2008/02/19/the-right-way-to-implement-a-multi-outcome-prediction-market-linear-programming/">aggregates liquidity inherently</a> with an LP algorithm, so augmenting a combinatorial order book with phantom orders would be redundant. In the chart below, the input to the combinatorial auctioneer (i.e. the LP algorithm) is strictly bids; corresponding phantom asks are only used to help visualize the order book.
+
+		<p>
+			In the chart below, bids are plotted as green dots. A bid on a single atomic security (e.g. [0, 1, 0, 0]) appears as a green dot on only one order book, and the corresponding phantom asks appear as orange dots on the other order books. Bids on mixed bundles (e.g. [0.2, 0.3, 0, 0.5]) appear as green dots on multiple order books. Visualizing bids on mixed bundles is difficult because a combinatorial bid’s limit price is a constraint on the whole bundle rather than on individual components, so its not obvious how we should plot them. In the case of an atomic bundle, the bid specifies only one component, so we can use the bid’s limit price to plot the single green dot. But for phantom asks, and components in mixed bundles, it is not clear what prices we should use to plot each component.
+
+		<p>
+			For bids on atomic bundles, we plot the bids at the limit price, and we plot the corresponding phantom asks at the complementary price. For example, the three atomic bids [1,0,0,0], [0,1,0,0], and [0,0,1,0], each with a limit price of 0.19, are complementary to a fourth bid on [0,0,0,1] with a limit price of 0.43 (1 - 0.19*3). So the atomic bids at 0.19 have phantom asks at 0.43. For bids on mixed bundles, we use the limit price to plot each component, and we use the state clearing prices to plot the corresponding phantom asks
+		<p>
+			The LP method we use will only calculate unique state clearing prices if it is given a sufficient set of bids. So to get initial unique state clearing prices, we generate a set of atomic bids (i.e. linearly independent bids) at equal prices. Since there are four states, we generate four atomic bids, all with the same limit price of ¼ = 0.25. To fill in the order book some more, we generate additional sets of atomic bids at equally spaced price levels, resulting in a staircase formation at decreasing price levels (0.25, 0.22, 0.19, …). This generated set of bids represents limit orders placed by a market maker, and is listed under “Market Maker bids” in the chart below.
+
+		<p>
+			Also in the chart below is a section for “Trader-entered bids”. Included are three example bids: one bid on an <i>atomic bundle</i> ([1,0,0,0]) and two bids on <i>mixed bundles</i> ([0.4, 0.3, 0.2, 0.1] and [0.1, 0.2, 0.3, 0.4]). The two mixed bundles are <i>complementary</i> to each other, and correspond to the "Short Bundle" and the "Long Bundle" from the previous example, except here we have simplified them down to four dimensions rather than fifteen (the fifteen dimensions in the previous example are the discrete prices between ~$5 and ~$20). All three bundles are <i>normalized</i>, meaning that their components sum to 1.0 (0.4 + 0.3 + 0.2 + 0.1 = 1.0). Normalization makes the limit price of a mixed bundle comparable to the limit price of an atomic bundle. For example, when the limit price of the atomic Trader-entered bid is raised above the initial state price of 0.25, then the Trader-entered bid should match the Market Maker’s bids and get partially filled. And likewise for a mixed bundle; a Trader-entered mixed bundle should also get filled when the limit price is raised above 0.25. Bundles with <i>unnormalized components</i>, however, also have unnormalized limit prices, and so aren’t easily compared.
+
+		<p>
+			To be clear, a bundle’s components specify quantities, not prices. For example, a bid for 50 units of the bundle [0.4, 0.3, 0.2, 0.1] is a bid for 0.4*50=20 units of the first component, 0.3*50=15 units of the second component, and so on. Keep in mind that the limit price of the bid is a limit price on the <i>entire bundle</i>, not a limit price on individual components.
+
+		<p>
+			Try adjusting the price and quantities of the Trader-entered bids, to see how the system reacts. Notice which bids are filled in full or partially, and how the state clearing prices change in response. Be aware that this example chart is very preliminary; the order books won’t be plotted correctly when too many variations of bundles, prices, and quantities are entered. Ideally, what we want to see is the <i>green bid</i> lines crossing the <i>orange ask</i> lines for bids that are either fully or partially filled. For bids that are fully filled, the green dot should appear <i>below</i> the orange line. For bids that are partially filled, the green dot should appear <i>above</i> the orange line by a vertical distance equal to the remaining unfilled quantity.
+
+		<p>
+			Details on the LP calculations can be seen in the javascript console.
+
+		</p>
+
+
+	</div>
+
+	<div id="LPAuctionChart" class="card ds-1" style="border:0px dotted red; width:850px">
+		<div id="LPWidget" style="width:850px">LP widget</div>
+	</div>
+
+
+	<div class="wrapper">
+		<p>
+			Our goal with this example is to gain some visual insight into bundle limit orders on a combinatorial order book, and how the fills and clearing prices are calculated by a batch combinatorial auctioneer. Recall that the LP auctioneer requires a sufficient set of bids in order to calculate unique state prices. Without unique state prices, transacting on a combinatorial order book is a crapshoot, as there is no way to choose one solution of state clearing prices and bid fills over another.<sup><a id="Peters-2009" class="ref" href="#ref-Peters-2009">[n]</a></sup> In other words, if there is no unique optimal solution, then the “winner determination problem” is underdetermined.
+
+		<p>
+			In the example above, a set of staircase bids was generated in order to get initial unique state prices of [0.25, 0.25, 0.25, 0.25]. But the staircase bids aren’t sufficient to get unique state prices after being matched against user-entered bids. The lack of uniqueness can be seen by entering a bid for the portfolio [1, 0, 0, 0] with a limit price of 0.4 and a quantity of 60, resulting in state clearing prices of [0.40, 0.19, 0.22, 0.19]. That the second, third, and fourth components have the state clearing prices [0.19, 0.22, 0.19] is an artifact of the staircase price levels; there is no good reason they aren't instead [0.22, 0.19, 0.19] or [0.19, 0.19, 0.22], as all three are valid <i>optimal</i> solutions to the linear system. Ideally, the combinatorial auctioneer would have calculated a <i>unique optimal</i> solution of [0.40, 0.20, 0.20, 0.20]. But again, guaranteeing a unique optimal solution regardless of the given bids requires a more complex optimization method than the relatively simple method we use here.
+
+		<p>
+			The generated staircase “Market Maker bids” in the example above is an ad hoc function for the sole purpose of the visualization. We want to replace it with an automated market maker that could work in <a class="dotted" href="http://www.eecs.harvard.edu/cs286r/courses/fall12/papers/OPRS10.pdf">practice</a>, such as a cost-function based automated market maker. The next example presents the prototypical cost-function based automated market maker: LMSR.
+		</p>
+
+
+
+
+		<hr>
+
+		<h2>3&nbsp;&nbsp; Market Makers</h3>
+
+		<p>
+			While auctioneers <i>match bids</i>, market makers <i>accept bids</i>. Note the difference between "match bids" and "accept bids": an auctioneer operates an order-driven market by matching the bids that are sent to a limit order book; whereas a market maker operates a quote-driven market (also known as an OTC market) by accepting (or rejecting) the bids that are sent directly to the market maker. However, market makers can also operate in an order-driven market by <i>generating bids</i> and sending them to a limit order book, where they are matched by an auctioneer against the other bids arriving at the order book. The previous example chart presented a combinatorial auctioneer that matches bids. The example chart below presents a combinatorial market maker that generates bids for a combinatorial order book.
+
+		<p>
+			Modern market makers are called by various names, including <a class="dotted" href="http://www.cftc.gov/ucm/groups/public/@economicanalysis/documents/file/oce_electronicmarket1212.pdf">electronic market makers</a>, <a class="dotted" href="https://www.batstrading.com/resources/newsletters/2009-07-Newsletter.pdf">automated market makers</a>, <a class="dotted" href="http://www.wsj.com/articles/SB10001424052970204397704577070731557751256">automated liquidity providers</a>, or more commonly, high-frequency traders. These traders operate <a class="hilite" href="https://medium.com/@abarisser/high-frequency-trading-on-the-coinbase-exchange-f804c80f507b">market making bots</a>, which are usually presented in the context of a continuous double auction on a limit order book. In literature around prediction markets, a <i>market scoring rule</i> or <i>cost function</i> is employed as an <a class="hilite" href="http://www.augur.net/blog/what-is-an-automated-market-maker">automated market maker</a>, and usually presented as an operator of a quote-driven market. But market scoring rules can in fact be adapted to order-driven markets and viewed as market making bots that post limit orders to an order book.<sup><a id="AbernethyKale-2013" class="ref" href="#ref-AbernethyKale-2013">[n]</a></sup><sup><a id="Chakraborty-2015" class="ref" href="#ref-Chakraborty-2015">[n]</a></sup> In the example below, we present a market scoring rule as a market maker that posts limit orders to a <i>combinatorial order book</i>.
+		</p>
+
+
+
+		<h3>3.1&nbsp;&nbsp; Liquidity and lemons</h3>
+		<p>
+			While market makers ostensibly perform the service of providing liquidity by posting limit orders, modern HFT market makers also take liquidity with market orders, employing whichever strategy is most profitable on a moment-to-moment basis.<sup><a id="Guilbaud-2013" class="ref" href="#ref-Guilbaud-2013">[n]</a></sup> Historically, human specialist firms (later called <a class="dotted" href="http://www.investopedia.com/terms/d/designated-market-maker-dmm.asp">designated market makers</a>) were required by exchange regulations to obey an <a class="dotted" href="http://www.investopedia.com/terms/a/affirmativeobligation.asp">affirmative obligation</a> to provide liquidity with limit orders when acting as a "principal" (dealer), and to obey a <a class="dotted" href="http://www.investopedia.com/terms/n/negativeobligation.asp">negative obligation</a> forbidding them from taking liquidity with market orders when acting as an "agent" (broker).<sup><a id="Ellis-2010" class="ref" href="#ref-Ellis-2010">[n]</a></sup> Unlike the specialists of old who stood inside a trading post executing the core mechanism, market makers in modern electronic markets operate on the periphery of the core mechanism with no such obligations. The inherent conflict between providing liquidity (at a minimal spread) on the one hand, and maximizing profit on the other, is a form of the <a class="hilite" href="http://clsbluesky.law.columbia.edu/2015/05/06/the-new-stock-market-sense-and-nonsense-2/">principal-agent problem</a> and the root cause of "<a class="dotted" href="https://en.wikipedia.org/wiki/High-frequency_trading#May_6.2C_2010_Flash_Crash">hot-potato</a>" trading and <a class="dotted" href="https://en.wikipedia.org/wiki/Flash_crash">flash crashes</a> in modern electronic markets. Since market makers can (more often than not) predict short-term price drift, they have an <a class="dotted" href="https://en.wikipedia.org/wiki/Information_asymmetry">information asymmetry</a> over uninformed traders; thus, the limit order book as a <a class="hilite" href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=900699">market for liquidity</a> is an instance of the classic <a class="dotted" href="https://en.wikipedia.org/wiki/The_Market_for_Lemons">market for lemons</a>.
+
+
+		<p>
+			Besides the presence of asymmetric information, another property of markets for lemons is a <a class="dotted" href="https://en.wikipedia.org/wiki/The_Market_for_Lemons#Criteria">defficiency of effective guarantees/warranties</a>, or in other words, no obligations. Because a smart contract on a blockchain, or blockchain contract (to distinguish from "smart contracts" or oracles operated by third-parties) is obligated by the p2p network to execute the instructions in its source code, they are <a class="dotted" href="https://twitter.com/balajis/status/474428787669479425">solutions to the principal-agent problem</a>. Thus, a blockchain contract is a "decentralized autonomous agent" guaranteed to act in the interests of the principal. In our case, the trader is the principal, and the decentralized autonomous market maker (DAMM) is an agent employed as a liquidity provider.
+
+		<p>
+			In an essay about the 2007-08 financial crisis, <a class="dotted" href="http://blogs.ft.com/maverecon/2009/10/after-subverting-bank-insolvency-our-leaders-are-now-about-to-make-a-mess-of-liquidity">Buiter argues</a> that "liquidity is (or should be) a public good", and that central banks should act as <a class="dotted" href="http://blogs.ft.com/maverecon/2007/08/the-central-banhtml/">Market Makers of last resort</a>, rather than mere <a class="dotted" href="https://en.wikipedia.org/wiki/Lender_of_last_resort">Lenders of last resort</a>. That is, rather than just providing <i>funding liquidity</i> to commercial intermediary banks during market crises, a central bank should add <i>market liquidity</i> to the market directly. A DAMM can be viewed similarly in acting as a market maker of last resort or "dealer of last resort" who directly provides market liquidity. But while a central bank controls monetry policy, a DAMM does not control monetary policy. Consequently, a DAMM must raise funds or "reserve" before it can commit to providing liquidity. Additionally, a central bank is operated by a government-appointed committee, whereas a DAMM <a class="dotted" href="https://twitter.com/leashless/status/605650104389902338">utilizes a blockchain</a> as a <a class="dotted" href="https://en.wikipedia.org/wiki/Public_good#Coasian_solution">Coasian solution</a> to negotiate the creation of a <a class="dotted" href="https://en.wikipedia.org/wiki/Common-pool_resource">common</a> default liquidity provider. In a similar spirit is a proposal by Schwartz, which suggests that a company commit its capital to act as a market maker, buying and selling its own stock in order to stabilize the share price.<sup><a id="Schwartz-1988" class="ref" href="#ref-Schwartz-1988">[n]</a></sup> The proposal explains that the purpose of this corporate "stabilization fund" and market making program is "global demand-smoothing", as opposed to the "local demand-smoothing" obligations of third-party market makers and specialists.
+
+
+		</p>
+
+
+
+
+		<h3>3.2&nbsp;&nbsp; Market making as a trading strategy</h3>
+
+		<p>
+			The automated market maker presented below, LMSR, can be viewed as an algorithmic trading program or "trading bot" that executes a <a class="dotted" href="https://en.wikipedia.org/wiki/Algorithmic_trading#Market_making">market making strategy</a>. The ad hoc function we used in the previous example to generate bids in a staircase formation at a ladder of price levels is also a market making strategy, albeit a simple and naive strategy. Such <a class="hilite" href="https://blog.bitmex.com/site_announcement/free-market-making-bot/">simple market making bots</a> are theoretically capable of earning a profit under strong assumptions of a mean-reverting price series.<sup><a id="Chakraborty-2011" class="ref" href="#ref-Chakraborty-2011">[n]</a></sup> But in practice, simple strategies that do not predict short-term price drift suffer <a class="dotted" href="https://en.wikipedia.org/wiki/Adverse_selection">adverse selection</a>, <a class="hilite" href="http://www.wildbunny.co.uk/blog/2014/06/24/algorithmic-trading-with-bitcoin-part-2/">bearing losses</a> to other traders in a <a class="dotted" href="http://turtletrader.com/zerosum.pdf">zero-sum game</a>.<sup><a id="Cartea-2014" class="ref" href="#ref-Cartea-2014">[n]</a></sup>
+
+
+		<p>
+			To put it another way, a simple and naive market making strategy is <i>path-dependent</i>, and so might be exploited as a "money pump" until the market maker runs out of funds. In contrast, LMSR and cost-function based automated market makers (AMMs) are <i>path-independent</i>, meaning that the balance of funds and inventory depends only on the state prices, not on the sequence of trades. Path-independence guarantees that the AMM cannot be exploited as a money pump; consequently path-independent AMMs are said to have <i>bounded loss</i>. Note that a profit-charging AMM, such as LS-LMSR, is path-dependent since it uses a cost function that earns a spread. However, path-independence is not necessary to guarantee bounded-loss, it only sufficient. Profit-charging cost functions meet a different requirement, the <i>triangle inequality</i>, which is also sufficient to guarantee the "no money pumps" or bounded loss property.<sup><a id="Othman-2012" class="ref" href="#ref-Othman-2012">[n]</a></sup>
+
+		<p>
+			While the losses of a naive market making bot can be limited by simply limiting its funds, they don't have the "no money pump" bounded loss guarantee, so its funds might run out at any time. Thus, a naive market making strategy cannot be relied on to provide liquidity for as long as a market is open because there's no guarantee that it won't go bankrupt. In contrast, the path-independent (or triangle inequality) bounded loss properties of a cost-function based AMM guarantee that it can stay in the market and continue providing liquidity indefinitely.
+		</p>
+
+		<p>
+			Further discussion of the profitability of trading strategies, trading frequency, and bid-ask spreads will be in the long version of this document.
+		</p>
+
+
+
+
+		<h3>3.3&nbsp;&nbsp; Combinatorial market makers</h3>
+
+		<p>
+			<a class="dotted" href="https://www.math.nyu.edu/faculty/avellane/HighFrequencyTrading.pdf">Market makers or dealers</a> are usually discussed in the context of a continuous double auction with a two-sided limit order book. But since our market is a combinatorial auction with a multi-sided combinatorial order book, we need a combinatorial market maker. Note that here we use the term “combinatorial market maker” in <a class="hilite" href="http://blog.oddhead.com/2008/12/22/what-is-and-what-good-is-a-combinatorial-prediction-market/">the sense of “combinatorial bids”</a>, <b>not</b> in the sense of “combinatorial outcomes”. <i>Combinatorial bids</i> describes a market structure with with a tractable number of items (or outcomes, or states), i.e. up to a few hundreds or thousands. <i>Combinatorial outcomes</i> describes a market structure with an intractable or exponential number of outcomes, i.e. in the millions or more. The literature around prediction markets and automated market makers often uses “combinatorial” as shorthand for combinatorial outcomes. Our example market for digital currency derivatives has a structure with combinatorial bids and a tractable, discrete outcome space of fifteen states. Market structures with <a class="dotted" href="http://people.cs.uchicago.edu/~fortnow/papers/LMSR.pdf">combinatorial outcomes</a> or <a class="dotted" href="http://www.eecs.harvard.edu/econcs/pubs/Chen_EC13_b.pdf">continuous outcome spaces</a> is a topic for future work.
+
+		<p>
+			The term smart market was originally used to describe combinatorial auction mechanisms because unlike double auctions, which execute simple sorting processes, combinatorial auctions solve complex optimization problems. Combinatorial auctioneers, such as the LP algorithm used in our example, generally solve the "winner determination problem" by matching bids with batch processing in discrete time, so they are <a class="dotted" href="https://users.soe.ucsc.edu/~niejiazhong/slides/vishy-lec4.pdf">batch optimization</a> algorithms. Combinatorial market makers such as LMSR, however, solve a "regret minimization" problem by accepting bids with serial processing in continuous time, and so are <a class="hilite" href="http://www.jennwv.com/courses/W12/optframework.pdf">online optimization</a> algorithms.<sup><a id="AbernethyChen-2013" class="ref" href="#ref-AbernethyChen-2013">[n]</a></sup> Thus, both combinatorial auctioneers and combinatorial market makers solve complex optimization problems; the auctioneer uses a batch algorithm, and the market maker uses an online algorithm. For this reason, combinatorial market makers are also appropriately described as smart market mechanisms.
+
+
+
+
+		<h3>3.4&nbsp;&nbsp; Automated market making with a Market Scoring Rule</h3>
+
+
+		<p>
+			This example visualizes the <b>Logarithmic Market Scoring Rule</b> (LMSR) as an <a class="hilite" href="http://www.augur.net/blog/what-is-an-automated-market-maker">automated market maker</a>. LMSR, or <a class="hilite" href="http://blog.oddhead.com/2006/10/30/implementing-hansons-market-maker/">Hanson's market maker</a>, is the classic original instance of a more general class of <a class="dotted" href="http://www.eecs.harvard.edu/econcs/pubs/Chen_EC13_b.pdf">cost function</a> market makers. Further discussion of market scoring rules and cost function market makers will be in the long version of this paper.
+
+		<p>
+			The aim of this example is to present LMSR as a <i>liquidity provider</i>, by visualizing it as <i>market making bot</i> that places limit orders on a combinatorial order book, and adjusts the prices of its limits orders in response to trading activity. Recall that a market maker must have funds. The initial funds provided to LMSR are the <b>subsidy</b>, so an LMSR market maker is a <i>subsidized</i> market maker. The subsidy amount is set by the <b>B parameter</b>. Try adjusting the B parameter in the example below, and observe how the bid depth on the order book changes.
+
+		<p>
+			The components of the inventory vector can also be adjusted, and the state prices will change in response. Changes in market maker inventory are caused by trading activity. Observe that the degree of change in state prices in response to trading activity depends on the B parameter. A larger B parameter represents a market with more <i>liquidity</i>, meaning that more volume can be traded with less price movement.
+
+		</p>
+
+
+	</div>
+
+
+
+	<div id="AMMDepthChart" class="card ds-1" style="width:850px">
+		<div id="MSRDepthWidget" style="border:0px dotted red; width:850px">AMM widget</div>
+	</div>
+
+
+	<div class="wrapper">
+
+
+		<p>
+			LMSR and other cost function market makers are usually presented as <a class="dotted" href="http://www.seas.upenn.edu/~hoda/HLPV.pdf">continous-time trading</a> mechanisms that use serial order processing and discriminatory pricing. But the market we propose uses batch processing with uniform-price clearing. Rather than intermediating in continuous time between buyers and sellers one by one in a serial fashion, a market maker participating in frequent batch auctions intermediates in discrete time across batch auction periods, with between multiple buyers and multiple sellers simultaneously (note that technically, a combinatorial auctioneer intermediates between multiple buyers and a single seller, since it is a combinatorial auction rather than a combinatorial exchange). This role of a market maker has been described before. In the context of call (i.e. batch) auctions, “a market maker could play an important role in animating book building during the precall order entry period."<sup><a id="Schwartz-2004" class="ref" href="#ref-Schwartz-2004">[n]</a></sup> This view sees a market maker as taking "an active role in the book building process" across batch auction periods:
+		</p>
+
+		<blockquote class="style2">
+			"We see the intermediary as a facilitator who animates the market. The animation process may involve providing capital, not to supply liquidity per se, but to get big buyers and sellers to step forward in a way that enables them to supply liquidity to each other."<sup><a id="Schwartz-2006" class="ref" href="#ref-Schwartz-2006">[n]</a></sup>
+		</blockquote>
+
+		<p>
+			This role of a market maker in batch auctions contrasts with the role of a market maker in continuous auctions. In continuous auctions, a market maker provides liquidity directly by placing limit orders, which are then matched by market orders placed by buyers and sellers. So in a continuous auction, buyers and sellers provide liquidity to each other only indirectly, through a market maker acting as an intermediary between each trade.
+
+		<p>
+			In contrast, a batch auction enables buyers and sellers to meet directly. The market maker only intermediates between batch auction periods, not between every trade. The role of the market maker is to “animate the order book” with limit orders around the expected clearing price early in the batch period, and to provide price continuity across batch periods. This aligns with the role of an automated market maker in a combinatorial auction where, as we saw, the limit orders provided by the market maker enable the LP algorithm to calculate unique state clearing prices.
+		</p>
+
+
+		<hr>
+
+
+		<h2>4&nbsp;&nbsp; Future work</h2>
+
+		<p>
+			An immediate task that remains is to properly integrate a combinatorial order book with an automated market maker (AMM), particularly with batch processing and uniform-price clearing. Some details about discrete-time batch processing that we didn't address include the issue of providing bid-secrecy (i.e. sealed-bids) during each batch period, and determining the optimal batch period length (e.g. seconds, minutes, or longer; or perhaps dynamic periods).<sup><a id="Budish-2014" class="ref" href="#ref-Budish-2014">[n]</a></sup>
+
+		<p>
+			The issue of <a class="hilite" href="http://www.nber.org/papers/w12839">numeraires</a> is an important direction of research.<sup><a id="Buiter-2007" class="ref" href="#ref-Buiter-2007">[n]</a></sup> This issue is especially relevant to on-chain markets where the native numeraire is a cryptocurrency, and it cannot be assumed that a standard numeraire (e.g. USD or EUR) is available.
+
+		<p>
+			Future work on combinatorial portfolios includes exploring different ways of defining the market structure or outcome space. For instance, while our example market defined the outcome space on a single expiration date, we could instead define an outcome space over multiple expiration dates. With an outcome space over multiple expiration dates, traders could get even greater leverage or <a class="hilite" href="http://www.cs.cmu.edu/~sandholm/expressivenessInMechanisms.AAAI08.pdf">expressiveness</a> with portfolios that specify the path of the spot price over time.
+
+		<p>
+			Related to choosing the structure of the outcome space is the use of automated market makers with more advanced cost functions. For example, time-sensitive cost functions and "implicit submarket closing" can vary the amount of liquidity provided over time, which would be ideal for an outcome space structured over multiple expiration dates.<sup><a id="Dudik-2014" class="ref" href="#ref-Dudik-2014">[n]</a></sup> The choice of cost function is also central to the issue of market maker profit and order book depth. With volume-parameterized cost functions, the trade-off between the bid-ask spread and market maker profit can be balanced by diminishing the bid-ask spread as volume increases.<sup><a id="Othman-2012" class="ref" href="#ref-Othman-2012">[n]</a></sup><sup><a id="Abernethy-2014" class="ref" href="#ref-Abernethy-2014">[n]</a></sup>
+
+
+
+		<p>
+			The issue of market maker profit raises the critical question, can market participants collectively utilize a decentralized autonomous market maker (DAMM) to provide significant market liquidity? For example, perhaps participants can deposit the funds needed by a DAMM, purchasing a kind of "liquidity bond" that pays returns proportional to trading volume. Alternatively, a DAMM remains minimally funded, serving primarily to calculate unique state clearing prices. In scenarios where the DAM is minimally funded, market liquidity is provided in essentially the same way as in the current market eco-system: by traders independently posting limit orders. But even in this case, the use of batch combinatorial auctions should enhance market liquidity substantially.
+
+		</p>
+
+
+
+		<h2>5&nbsp;&nbsp; Conclusion</h2>
+		<p>
+			We began by discussing flaws in the industry standard method of trading related securities on separate order books through independent continuous double auctions, and why those flaws hamper market liquidity and harm trader welfare. Then we explained how to address those flaws with two combinatorial "smart market" mechanisms: (1) batch combinatorial auctions, and (2) automated market makers. And we explained why these mechanisms enhance market liquidity and improve trader welfare. We also presented three explorable examples in the form of interactive charts to help make the concepts more concrete.
+
+		<p>
+		 	The first chart showed how to use combinatorial portfolios of binary options to construct synthetic positions that replicate the payoffs of conventional derivatives. These portfolios are traded as bundles in a combinatorial mechanism, which (by definition) requires a smart market. Thus, the first chart presented an <i>example application</i> to motivate the use of smart market mechanisms. That is, it presented digital currency derivatives as items that can be traded in a smart market, but it did not present the underlying trading mechanisms themselves.
+
+		<p>
+			The second and third charts presented the underlying trading mechanisms. The second chart presented a batch combinatorial auction. The third chart presented an automated market maker. These two mechanisms compliment each other; the presence of both enhances liquidity. Broadly speaking, these two mechanisms (an auctioneer and a market maker, respectively) are two of four essential mechanisms that we find in any healthy market (the other two being an issuer and a clearinghouse).
+
+		<p>
+			In our presentation of two smart market mechanisms, and example application to digital currency derivatives, several distinct aspects were involved. To summarize, we outline these distinct aspects with four recommendations:
+
+		<p>
+			<strong>(1) Replace continuous-time serial processing with discrete-time batch processing:</strong> Serial processing of bids and offers in continuous-time creates mechanical arbitrage opportunities that are exploited by the fastest traders, leading to an arms race for speed. With batch processing in discrete-time, fast and slow traders alike are on a level playing field, as all traders transact simultaneously at a uniform clearing price. Batch processing with uniform-price clearing forces traders to compete on price rather than use speed to earn arbitrage rents, so bid-ask spreads are reduced. It also encourages traders to place limit orders rather than market orders, since they need not worry about being sniped (overpaying to fast traders). Although we presented batch processing for a combinatorial derivatives market, it can (and should) be applied to conventional double auctions such as spot markets.
+
+
+		<p>
+			<strong>(2) Replace independent order books with combinatorial order books:</strong> Trading related securities through double auctions on independent order books fragments liquidity and segregates prices. Double auctions are only capable of bilateral order matching, which fragments liquidity and exacerbates the thin market problem. Combinatorial order books enable multilateral matching, unifying liquidity and reducing transaction costs. Segregated prices become irrational in the presence of careless or unsophisticated traders, creating statistical arbitrage opportunities that are exploited by advanced traders. Combinatorial auctioneers can automatically integrate prices so that such arbitrage opportunities never arise, improving the welfare of the average trader.
+
+
+		<p>
+			<strong>(3) Construct hedging strategies using combinatorial portfolios of binary options:</strong> Hedging strategies that use portfolios of binary options can be traded on combinatorial order books, enabling multilateral matching of hedgers and speculators. Multilateral bid matching aggregates all synthetic positions into a unified pool of liquidity. So regardless of which derivative instrument traders wish to use (such as options, futures, contracts-for-difference, etc.) or what leverage, positions can be combined into complementary sets matched by a combinatorial auctioneer. Thus, the use of combinatorial portfolios aggregates liquidity, enhances leverage and reduces transaction costs.
+
+
+		<p>
+			<strong>(4) Use a decentralized autonomous market maker as a default liquidity provider:</strong> An on-chain market maker, or decentralized autonomous market maker, acts as a default liquidity provider or “market maker of last resort”. Such on-chain market makers contrast with merely automated market makers that are operated by third-party agents who have no obligations. Without the obligation to stay in a market and to continue providing liquidity when market conditions are volatile, third-party market makers either maximize the bid-ask spread or cancel their orders entirely, precipitating flash crashes. Since on-chain market makers are decentralized autonomous agents guaranteed to execute the instructions specified in source code, they are reliable default liquidity providers.
+		</p>
+
+
+
+		<hr>
+
+
+		<h2>Appendix</h2>
+
+		<h3>A&nbsp;&nbsp; Stablecoin mechanisms: monetary policy vs. hedging strategies</h3>
+
+		<p>
+			A full discussion of monetary policy, price stability, and solvency will appear in the long version of this document. For now, we include only a quick-and-dirty comparison between monetary policy and hedging strategies.
+
+		</p>
+
+
+		<h3>A.1&nbsp;&nbsp; Monetary policy and feedback loops</h3>
+
+
+
+		<p>
+			In brief, stablecoin designs based on monetary policy rely on some estimate of demand, which is used as an input signal to a <a class="dotted" href="https://en.wikipedia.org/wiki/Feedback">feedback loop</a> that drives policy decisions. Since the demand is uncertain, a monetary policy scheme is a <a class="dotted" href="https://en.wikipedia.org/wiki/Stochastic_control">stochastic control</a> system. And if, for example, price is used as an estimate of demand, then the bid-ask spread is measurement noise. This measurement noise is injected into the system by the policy action, and it may or may not be amplified by the feedback loop. Whether or not the measurement noise is amplified depends on the <a class="dotted" href="https://en.wikipedia.org/wiki/Sensitivity_(control_systems)">sensitivity</a> of the transfer function, which is confounded by <a class="dotted" href="https://en.wikipedia.org/wiki/Multiplier_uncertainty">multiplier uncertainty</a>.
+
+
+		<p>
+			Basically, a stablecoin designer cannot be sure how market participants will react, or if they will overreact, in response to policy decisions. And this holds true regardless of whether the policy decisions are <a class="dotted" href="https://en.wikipedia.org/wiki/Discretionary_policy">discretionary</a> or non-discretionary (i.e. bureaucratic or algorithmic). From a control theory perspective, it makes little difference because the concern is not the predictability of policy actions, but rather the predictability of how market participants will react in response.
+
+		<p>
+			In any case, an important point here is that a more efficient liquidity mechanism will reduce the bid-ask spread and therefore (some of) the measurement noise in a monetary policy feedback loop. Thus, monetary policy also benefits from a better liquidity mechanism, not just hedging strategies. This is NOT to say that more liquidity will necessarily reduce volatility; though it <i>will</i> reduce the transaction costs of <i>hedging</i> volatility. But neither will a dynamic monetary policy necessarily reduce volatility. For instance, if the volume-weighted average price (VWAP) is used as the input signal, and the VWAP is volatile due to low market liquidity, or any other reason besides a true change in demand, then the input signal is mostly measurement noise. In such instances, policy actions would not be driven by an accurate estimate of true demand, but mostly by noise, and volatility would be amplified.
+
+
+
+		<p>
+			Thus, the claim that an inelastic money supply is the <a class="dotted" href="http://www.ofnumbers.com/2015/06/19/unable-to-dynamically-match-supply-with-demand">core cause of volatility</a> is misplaced, particularly if speaking about the <a class="dotted" href="https://en.wikipedia.org/wiki/Monetary_base">monetary base</a> (i.e. M0 money). From a control theory perspective, volatility is caused by "<a class="dotted" href="https://github.com/rmsams/slides-stablecoin/blob/master/slides.pdf">genuine uncertainty</a>" due to limited <a class="dotted" href="https://en.wikipedia.org/wiki/Observability">observability</a>, and amplified by a lack of market liquidity. Compared to an <a class="dotted" href="https://en.wikipedia.org/wiki/Open-loop_controller">open-loop</a> monetary policy (e.g. the bitcoin block reward), a closed-loop monetary policy adds <a class="dotted" href="https://en.wikipedia.org/wiki/Feedback#Economics_and_finance">yet another feedback loop</a> into the mix, further complicating the system dynamics. Comparisons to monetary policy at central banks are not very relevant since the low volatility of USD etc. may be due to high liquidity and elastic credit mechanisms (i.e. <a class="dotted" href="https://en.wikipedia.org/wiki/Money_supply#Fractional-reserve_banking">M1-M3 money</a>), rather than closed-loop monetary policy. In practice, a monetary policy feedback loop may dampen volatility or it may amplify volatility, depending on the level of noise in the signal and how market participants react. In stablecoin models, a closed-loop monetary policy works about as well as the extent to which one makes assumptions about market liquidity and market efficiency (i.e. lack of noise in the input signal and ideal reactions from market participants).
+
+		</p>
+
+
+		<h3>A.2&nbsp;&nbsp; Quantity theory of money vs. real-world markets</h4>
+
+
+		<p>
+			It is intuitively understood that the success of policy actions depends on how market participants will react in response. In particular, monetary policy can be viewed like a string. In an economy undergoing expansion, increasing the supply of money can "pull" down on the currency price. But in an economy undergoing contraction, monetary policy is not effective at increasing demand; it cannot "push" up the currency price, hence "<a class="dotted" href="http://en.wikipedia.org/wiki/Pushing_on_a_string#Monetary_policy">pushing on a string</a>". In the contractionary case, a negative interest rate can help with this <a class="dotted" href="https://en.wikipedia.org/wiki/Zero_lower_bound">Zero lower bound</a> problem to some degree, as a workaround which "pulls" in a negative direction, so to speak. But negative interest rates still only decrease the money supply, they don't actually push up the currency price by stimulating demand.
+
+		<p>
+			That monetary policy cannot stimulate demand can be illustrated with a thought experiment in which a stablecoin has a target price peg, and is exchangeable for a volatile reserve asset. If the price of the reserve asset plummets in a <a class="dotted" href="https://en.wikipedia.org/wiki/Demand_shock">negative demand shock</a>, then in theory a negative interest rate on the stablecoin will stimulate the holders to exchange it for the reserve asset, thus reducing the supply of the stablecoin such that (assuming constant demand) its price floats upward back to the peg. But in practice, market participants will respond to a plummeting reserve price by dumping the stablecoin in a sort of "run on the bank" because it is no longer backed by sufficient reserve, causing its peg to break. Such a <a class="dotted" href="https://en.wikipedia.org/wiki/Flight-to-liquidity">flight-to-liquidity</a> from the less liquid stablecoin to the more liquid reserve asset (BTC), and from the reserve asset to some even more liquid asset (e.g. USD), triggers a deflationary <a class="dotted" href="https://en.wikipedia.org/wiki/Liquidity_trap">liquidity trap</a> in which it is not rational for any participant to exchange the volatile reserve asset for the stablecoin.
+
+		<!--
+					* why is the stablecoin less liquid than the reserve asset? can it be more liquid?
+		-->
+
+		<p>
+			This thought experiment illustrates the mismatch between the <a class="dotted" href="https://en.wikipedia.org/wiki/Quantity_theory_of_money">quantity theory of money</a>, which is an ideal model that assumes perfect liquidity, and how participants react in real-world markets. In a system that only has capital inflows (i.e. an expansionary economy), then a peg based on monetary policy should work. But in a system with capital outflows, the peg will break, otherwise the <a class="dotted" href="https://en.wikipedia.org/wiki/Impossible_trinity">impossible trinity</a> would be violated. Mises <a class="dotted" href="https://en.wikipedia.org/wiki/Velocity_of_money#Austrian_school_of_economics">stated it</a> succinctly: "It is assumed that, other things being equal, prices must change in proportion to the changes occurring in the total supply of money available. This is not true."
+		</p>
+
+
+		<h3>A.3&nbsp;&nbsp; Money supply: nominal vs. real</h3>
+
+
+		<p>
+			Another issue with the monetary policy approach is that it mistakes the nominal number of coins with the money supply, succumbing to the <a class="dotted" href="https://en.wikipedia.org/wiki/Money_illusion">money illusion</a>. If the money supply is instead measured in real terms, then the price of the reserve asset (BTC) becomes a factor, and a more appropriate measure is the market capitalization. In real terms, the money supply is thus constantly adjusting in a continual process of <a class="dotted" href="https://en.wikipedia.org/wiki/Currency_appreciation_and_depreciation">appreciation and depreciation</a> as the market price changes. Thus, measuring the money supply in real terms views the supply as being determined <a class="dotted" href="https://en.wikipedia.org/wiki/Endogenous_money">endogenously</a> inthe market process of price discovery. In contrast, a measurement of the money supply in nominal terms views the supply as being determined exogenously by the monetary policy.
+
+		<p>
+			Furthermore, monetary policy and hedging strategies can be compared by how their respective feedback processes work. In monetary policy, the market price or some other estimate of demand is used as an input signal to drive a feedback loop which adjusts the nominal coin supply. In such a feedback loop, there is a delay between each signal measurement and the periodic policy action, and the policy action affects the price only indirectly. By comparison, hedging strategies can be seen as adjusting money supply with feedback pressure applied directly on the spot price through the trading mechanism. During expansionary periods, there are more bullish speculators than hedgers, and the feedback is a positive pressure that pushes the spot price higher. During contractionary periods, there are more hedgers than bullish speculators, and the feedback is a negative pressure that pulls the spot price lower.
+
+		<p>
+			To elaborate, monetary policy decisions are delayed responses to price signals, whereas hedging strategies exert instantaneous feedback pressure. For example, a monetary policy decision might set a new interest rate, or set a quantity of coins to be sold in a burn auction. But these policy actions occur only after changes in the price signal have been observed; they are delayed responses in a feedback loop. In contrast, hedging strategies exert feedback pressure directly on the price through buying and selling.
+
+		<p>
+			In both monetary policy and hedging strategies, the feedback process is affected by the bid-ask spread. In monetary policy, the bid-ask spread is measurement noise in the input signal to a delayed policy decision and action. But with hedging strategies, the bid-ask spread is a transaction cost that directly affects the trading decisions of market participants. Such a transaction cost can be viewed as an "interest rate" that is factored into the purchase price of a stable-portfolio beforehand. For example, during periods of expansion there will be more demand for bullish positions than bearish positions. So we can expect the purchase price of a stable-portfolio to be less than the face-value of the payoff, say a $97 cost to purchase a $100 stable-portfolio. Thus, hedgers receive a $3 discount on their short positions, in effect <i>earning</i> a 3% interest rate, which is paid by bullish speculators as a premium for taking long positions. During contractionary periods the equilibrium is reversed; the purchase price of a stable-portfolio will be greater than the face-value of the payoff, with a negative interest rate effectively priced in. For instance, purchasers of stable-portfolios might pay $103 for $100 of stable-value, in effect <i>paying</i> a 3% negative interest rate or premium. The premium paid by hedgers is received by bullish speculators as a discount on their long positions, for their willingness to lend reserve to the hedgers taking short positions.
+
+
+		</p>
+
+
+
+		<h3>A.4&nbsp;&nbsp; Open market operations for price pegs</h3>
+
+
+		<p>
+			The hedging strategy that we describe is similar to some monetary policy schemes in that a sort of "central bank" performs <a class="dotted" href="https://en.wikipedia.org/wiki/Open_market_operation">open market operations</a>.<sup><a id="Ametrano-2015" class="ref" href="#ref-Ametrano-2015">[n]</a></sup> Possible open market operations for a stablecoin mechanism include conducting "burn auctions" or setting interest rates on deposits. In the hedging strategy that we describe, the decentralized autonomous market maker (DAMM) buys and sells portfolios of derivative contracts, holding reserve (BTC) until payout when the contracts expire. This buying and selling can be viewed as performing open market operations with the goal of defending a <a class="dotted" href="https://en.wikipedia.org/wiki/Fixed_exchange-rate_system#Pegged_within_a_band">peg within a band</a>, where the band is the outcome space of future BTC/USD spot prices. The outcome space specifies an upper and lower bound on the spot price, and as long as the spot price is within this band, the derivative "stable-portfolios" are essentially pegged to a stable value. Furthermore, the DAMM defends a peg only until some expiration date, e.g. three months after the market opens. After a market expires, a new market is initialized with a new expiration date and new upper and lower bounds on the outcome space. In this way, stable-portfolios can be viewed as <a class="dotted" href="https://en.wikipedia.org/wiki/Fixed_exchange-rate_system#Crawling_pegs">crawling pegs</a> over a sequence of bands and expiration dates. Crucially, the DAMM can only defend the peg to the extent that it is funded with "reserve". Once all of the DAMM's funds are allocated and the spot price is near either the upper or lower bound of the band, it can no longer effectively provide liquidity to defend the peg.
+
+		<p>
+			On the whole, monetary policy schemes and hedging strategies are more similar than different. They are similar because both ultimately rely on the availability market liquidity, and both seek to transform volatility into stability. They are different in that monetary policy tries to stabilize price, whereas a hedging strategy tries to stabilize value. Furthermore, monetary policy scheme measures money supply in nominal terms, while hedging strategies measure money supply in real terms.
+
+		<p>
+			The two can also be distinguished by comparing the promises or guarantees they provide when it comes to exchanging the stable-value asset for the volatile reserve asset and vice versa. In some monetary policy schemes (e.g. <a class="dotted" href="https://github.com/ethereum/serpent/blob/develop/examples/schellingcoin/schellingdollar.se">SchellingDollar</a>), the reserve asset can be exchanged for the stable-value asset at the pegged rate at any time. But there is no guarantee on the rate received when redeeming the stable-value asset for the volatile reserve asset, since it is left to market forces. Thus, the peg is based on assumptions of market liquidity in the future, and how participants will respond to policy actions in the meantime.
+
+		<p>
+			In contrast, hedging strategies offer no guarantees on the rate for the initial exchange from volatile reserve asset to stable-valued asset, leaving market forces to determine such transaction costs. But since hedging strategies hold and allocate "reserve" in a collateralized contract, they guarantee that the stable-asset can be redeemed for the full face-value at the time of contract expiration regardless of how market participants act in the meantime. Although to be fair, the guarantee of full face-value redemption is conditioned on the price of the reserve being within the band limits set by the hedging contract.
+
+		</p>
+
+
+
+
+		<hr>
+
+		<h2>Acknowledgements</h2>
+		<p>
+			Thanks to Chris Hibbert for discussions about automated market makers and bundle matching, and feedback on example charts; Steve Waldman for discussion about market making and cryptoassets; Matt Liston for discussions about combinatorial mechanisms; and Ming Chan and caktux for discussions and feedback on example charts.
+		</p>
+
+		<hr>
+
+
+
+		<h2>Notes</h2>
+		<div id="notes">
+		</div>
+
+
+
+		<hr>
+
+		<h2>References</h2>
+		<ol id="references">
+		</ol>
+
+
+	</div>
+
+
+
+		<script type="text/javascript" src='imagezoom.js'></script>
+
+		<script src="jspm_packages/traceur-runtime.js"></script>
+		<script src="jspm_packages/system.js"></script>
+		<script src="config.js"></script>
+		<!--
+		$ jspm bundle lib/main.jsx! build.js
+
+		// include build.js as script src to use production build
+		-->
+		<script src="build.js"></script>
+
+
+		<script>
+			System.import('lib/main.jsx!')
+		</script>
+
+
+</body>
+</html>
